@@ -2,6 +2,51 @@ import os
 import sys
 import subprocess
 import pandas as pd
+import glob
+
+def process_all_clips(folder):
+    """
+    Processes all mp4 files in the given folder by applying the scaling and padding filter
+    (scale to 3:4 then pad to 9:16) using ffmpeg. The processed video replaces the original file.
+    """
+    # Define the ffmpeg filter
+    vf_filter = (
+        "scale='if(gt(a,4/3),ih*4/3,iw)':'if(lt(a,4/3),iw*3/4,ih)',"
+        "pad=w=iw:h=iw*16/9:x=0:y=(oh-ih)/2:color=black"
+    )
+    
+    mp4_files = glob.glob(os.path.join(folder, "*.mp4"))
+    if not mp4_files:
+        print("No mp4 files found in the folder to process for reframing.")
+        return
+    
+    for file_path in mp4_files:
+        directory, filename = os.path.split(file_path)
+        name, ext = os.path.splitext(filename)
+        temp_output = os.path.join(directory, f"{name}_temp{ext}")
+        
+        cmd = [
+            "ffmpeg",
+            "-i", file_path,
+            "-vf", vf_filter,
+            "-c:a", "copy",
+            temp_output
+        ]
+        
+        print(f"Reframing {file_path}...")
+        try:
+            subprocess.run(cmd, capture_output=True, text=True, check=True)
+            # Replace the original file with the reframed video.
+            os.replace(temp_output, file_path)
+            print(f"Replaced original clip with meme-style video: {file_path}")
+        except subprocess.CalledProcessError as e:
+            print("An error occurred during reframing:")
+            print("Return code:", e.returncode)
+            print("Standard Output:", e.stdout)
+            print("Error Output:", e.stderr)
+        except Exception as e:
+            print(f"Error replacing file {file_path}: {str(e)}")
+            
 
 def main():
     print("=" * 50)
@@ -104,6 +149,10 @@ def main():
         print("❌ Video processing failed. Exiting.")
         return
     
+    # Step 4: Reframe all clips to meme-style (overwrite original files)
+    print(f"\n🔄 Step 4: Reframing video clips to meme-style...")
+    process_all_clips(clips_dir)
+    
     print("\n" + "=" * 50)
     print("✅ Process completed successfully!")
     print("=" * 50)
@@ -112,7 +161,7 @@ def main():
     print(f"- Captions JSON: {json_path}")
     print(f"- Keywords data: {output_csv}")
     print(f"- Video clips: {clips_dir}")
-    print(f"- Timestamps: {os.path.join(clips_dir, 'adjusted_timestamps.csv')}")
+    print(f"- Adjusted timestamps: {os.path.join(clips_dir, 'adjusted_timestamps.csv')}")
 
 if __name__ == "__main__":
     main()
