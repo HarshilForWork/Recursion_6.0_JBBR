@@ -2,16 +2,39 @@ import json
 import subprocess
 import pandas as pd
 import re
+import os
 from collections import Counter
+from pymongo import MongoClient
 
-def extract_caption_from_json(file_path):
+def extract_caption_from_json(file_path, lower_bound=None, upper_bound=None):
     """
     Extracts and concatenates 'text' fields from a JSON file to form a caption.
+    If lower_bound and upper_bound are provided, only includes entries within that time range.
+    Works with output.json format that contains 'start' and 'duration' fields.
     """
     try:
         with open(file_path, 'r') as file:
             data = json.load(file)
-            texts = [entry.get('text', '') for entry in data if 'text' in entry]
+            
+            if lower_bound is not None and upper_bound is not None:
+                # Filter entries by timestamp if bounds are provided
+                filtered_entries = []
+                for entry in data:
+                    # Calculate end time by adding start + duration
+                    if 'start' in entry and 'duration' in entry:
+                        start_time = float(entry['start'])
+                        end_time = start_time + float(entry['duration'])
+                        
+                        # Check if the entry falls within the bounds
+                        # Use overlap logic: entry starts before upper_bound AND ends after lower_bound
+                        if start_time <= upper_bound and end_time >= lower_bound:
+                            filtered_entries.append(entry)
+                
+                texts = [entry.get('text', '') for entry in filtered_entries if 'text' in entry]
+            else:
+                # If no bounds provided, use all entries
+                texts = [entry.get('text', '') for entry in data if 'text' in entry]
+                
             caption = ' '.join(texts)
             return caption
     except FileNotFoundError:
@@ -49,23 +72,49 @@ def extract_frequent_names(transcript, min_mentions=2):
     frequent_names = [name for name, count in name_counts.items() if count >= min_mentions]
     return frequent_names[:5]  # Limit to top 5 names
 
-def generate_youtube_metadata(caption, trending_words, frequent_names):
+def load_adjusted_timestamps(csv_path):
+    """
+    Loads word, lower_bound, and upper_bound from the adjusted_timestamps.csv file.
+    Returns a list of dictionaries containing this information.
+    """
+    try:
+        df = pd.read_csv(csv_path)
+        # Ensure the required columns exist
+        required_columns = ['word', 'lower_bound', 'upper_bound']
+        if not all(col in df.columns for col in required_columns):
+            missing = [col for col in required_columns if col not in df.columns]
+            print(f"Error: Missing columns in timestamps CSV: {missing}")
+            return []
+            
+        # Convert DataFrame to list of dictionaries
+        timestamp_data = df[required_columns].to_dict('records')
+        return timestamp_data
+    except FileNotFoundError:
+        print(f"Error: The file {csv_path} was not found.")
+        return []
+    except Exception as e:
+        print(f"Error reading timestamps CSV file: {e}")
+        return []
+
+def generate_youtube_metadata(caption, trending_words, frequent_names, word):
     """
     Generates a title, description with hashtags, and tags for a YouTube Short
     using the Qwen2.5:3B model via Ollama based on the provided caption.
+    Includes the word in the metadata generation process.
     """
     prompt = f"""
     You are an AI assistant specializing in generating YouTube Shorts metadata. 
-    Given a transcript from a YouTube Short and trending words, generate:
-    1. A catchy title that is engaging and relevant.
+    Given a transcript from a YouTube Short, trending words, and a specific focus word, generate:
+    1. A catchy title that is engaging and relevant. Include the word "{word}" if appropriate.
     2. A short description that includes relevant details and hashtags and keep it small.
     3. A list of tags that follow these rules:
     - Keep them simple and relevant (no overly complex phrases).
     - Include names of people who are mentioned frequently in the transcript.
     - Provide the overall genre/topic of the video.
     - Include loads of relevant tags.
-    - You have to include spaces in tags wherever neccessary.
+    - You have to include spaces in tags wherever necessary.
     - Include trending words from the CSV file.
+    - Include the word "{word}" as one of the tags.
 
     **Transcript:**  
     {caption[:1000]}  # Truncated to avoid token limits
@@ -75,6 +124,9 @@ def generate_youtube_metadata(caption, trending_words, frequent_names):
 
     **Frequent Names:**  
     {", ".join(frequent_names)}
+
+    **Focus Word:**
+    {word}
 
     **Output Format (JSON):**  
     {{
@@ -173,36 +225,102 @@ def generate_youtube_metadata(caption, trending_words, frequent_names):
         print(f"An error occurred: {e}")
         return {}
 
-if __name__ == "__main__":
-    # File paths
-    json_path = "C:/PF/Projects/Recursion_6.0_JBBR/output.json"
-    csv_path = "C:/PF/Projects/Recursion_6.0_JBBR/output.csv"
-
-    # Extract caption from JSON
-    caption = extract_caption_from_json(json_path)
-
+def process_clips_and_generate_metadata(timestamps_csv, json_path, trending_csv, output_dir="clip_metadata"):
+    """
+    Processes each clip from the adjusted_timestamps.csv, extracts the relevant caption portion,
+    and generates metadata for each clip with naming convention word_clip_1.
+    """
+    # Create output directory if it doesn't exist
+    os.makedirs(output_dir, exist_ok=True)
+    
+    # Load timestamp data
+    timestamp_data = load_adjusted_timestamps(timestamps_csv)
+    
+    if not timestamp_data:
+        print("No timestamp data found. Exiting.")
+        return
+    
     # Extract trending words from CSV
-    trending_words = extract_trending_words(csv_path)
-
-    # Extract frequently mentioned names from transcript
-    frequent_names = extract_frequent_names(caption)
-
-    if caption:
-        # Generate YouTube Shorts metadata
-        metadata = generate_youtube_metadata(caption, trending_words, frequent_names)
-
+    trending_words = extract_trending_words(trending_csv)
+    
+    # Process each clip
+    all_metadata = {}
+    
+    for _, clip_data in enumerate(timestamp_data):
+        word = clip_data['word']
+        lower_bound = clip_data['lower_bound']
+        upper_bound = clip_data['upper_bound']
+        
+        # Always use "_1" at the end of the clip ID
+        clip_id = f"{word}_clip_1"
+        
+        print(f"Processing clip: {clip_id}")
+        print(f"Time range: {lower_bound} to {upper_bound}")
+        
+        # Extract caption for this specific time range
+        caption = extract_caption_from_json(json_path, lower_bound, upper_bound)
+        
+        if not caption:
+            print(f"Warning: No caption extracted for clip {clip_id}. Skipping.")
+            continue
+        
+        # Extract frequently mentioned names from this clip's transcript
+        frequent_names = extract_frequent_names(caption)
+        
+        # Generate metadata for this clip
+        metadata = generate_youtube_metadata(caption, trending_words, frequent_names, word)
+        
         # Add additional tags
         if "tags" in metadata:
-            metadata["tags"].extend(["Trending", "Youtube shorts", "YoutubeShorts"])
+            metadata["tags"].extend(["Trending", "Youtube shorts", "YoutubeShorts", word])
+        
+        # Save to all_metadata dictionary
+        all_metadata[clip_id] = metadata
+        
+        # Save individual clip metadata to file
+        clip_file_path = os.path.join(output_dir, f"{clip_id}.json")
+        with open(clip_file_path, "w") as f:
+            json.dump(metadata, f, indent=4)
+        
+        print(f"Saved metadata for {clip_id} to {clip_file_path}")
+    
+    # Save combined metadata to a single file
+    combined_file_path = os.path.join(output_dir, "all_clips_metadata.json")
+    with open(combined_file_path, "w") as f:
+        json.dump(all_metadata, f, indent=4)
+    
+    print(f"Saved combined metadata to {combined_file_path}")
+    return all_metadata
 
-        # Output the result in JSON format
-        if metadata:
-            print(json.dumps(metadata, indent=4))
-            # Also save to a file
-            with open("metadata.json", "w") as f:
-                json.dump(metadata, f, indent=4)
-            print("Metadata saved to metadata.json")
-        else:
-            print("Failed to generate metadata.")
-    else:
-        print("No caption could be extracted from the JSON file.")
+def push_metadata_to_mongodb(metadata, uri, db_name, collection_name):
+    """
+    Pushes the generated metadata to the specified MongoDB collection.
+    """
+    client = MongoClient(uri)
+    db = client[db_name]
+    collection = db[collection_name]
+    
+    # Add clip name to each metadata entry
+    for clip_name, data in metadata.items():
+        data['clip_name'] = clip_name
+    
+    collection.insert_many(metadata.values())
+    print(f"Metadata pushed to MongoDB collection: {collection_name}")
+
+if __name__ == "__main__":
+    # File paths
+    json_path = "C:/PF/Projects/Recursion_6.0_JBBR-Akshat/.output/captions.txt.json"
+    trending_csv = "C:/PF/Projects/Recursion_6.0_JBBR-Akshat/.output/keywords.csv"
+    timestamps_csv = "C:/PF/Projects/Recursion_6.0_JBBR-Akshat/.output/adjusted_timestamps.csv"
+    
+    # MongoDB connection details
+    mongo_uri= "mongodb+srv://shilankfans07:jbbr123@trimly.3hglc.mongodb.net/?retryWrites=true&w=majority&appName=trimly"
+    db_name = "test"
+    collection_name = "video_metadata"
+    
+    # Process all clips and generate metadata
+    metadata = process_clips_and_generate_metadata(timestamps_csv, json_path, trending_csv)
+    
+    # Push metadata to MongoDB
+    if metadata:
+        push_metadata_to_mongodb(metadata, mongo_uri, db_name, collection_name)
