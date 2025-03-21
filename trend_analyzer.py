@@ -26,7 +26,7 @@ stop_words.update(custom_stop_words)
 def clean_keyword(keyword):
     keyword = re.sub(r'[^\w\s]', '', keyword)
     keyword = keyword.lower()
-    if keyword in stop_words or len(keyword) < 2:
+    if keyword in stop_words or len(keyword) <= 2:
         return None
     return keyword
 
