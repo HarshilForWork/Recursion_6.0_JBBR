@@ -14,5 +14,7 @@ custom_stop_words = {'ago', 'am', 'i', 'you', 'me', 'your', 'it', 'for', 'to', '
                      'dont', 'doesnt', 'didnt', 'isnt', 'arent', 'wasnt', 'werent', 'hasnt', 'havent', 'hadnt',
                      'lets', 'ill', 'im', 'youre', 'hes', 'shes', 'its', 'were', 'theyre', 'ive', 'youve',
                      'weve', 'theyve', 'hadnt', 'werent', 'wasnt', 'arent', 'isnt', 'dont', 'doesnt', 'didnt', 'city',
-                     'date', 'month', 'tell', 'certain', 'half', 'one', 'two', 'three', 'four', 'five', 'six'
-                     }
+                     'date', 'month', 'tell', 'certain', 'half', 'one', 'two', 'three', 'four', 'five', 'six', 'right',
+                     'maybe', 'push', 'recieve', 'walks', 'impressive', 'need', 'gentle', 'possible', 'struggled', 'struggle'
+                     'example', 'accelerate'
+                      }
