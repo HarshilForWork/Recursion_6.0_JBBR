@@ -153,6 +153,26 @@ def main():
     print(f"\n🔄 Step 4: Reframing video clips to meme-style...")
     process_all_clips(clips_dir)
     
+    # Step 5: Generate titles and metadata for clips
+    print(f"\n📝 Step 5: Generating titles and metadata for clips...")
+    adjusted_timestamps_csv = os.path.join(output_dir, "adjusted_timestamps.csv")
+    metadata_dir = os.path.join(output_dir, "metadata")
+    
+    try:
+        subprocess.run([
+            sys.executable,
+            "title_generation.py",
+            adjusted_timestamps_csv,
+            json_path,
+            output_csv,
+            metadata_dir
+        ], check=True)
+        print("✅ Title generation complete")
+    except subprocess.CalledProcessError as e:
+        print(f"❌ Title generation failed: {e}")
+    except Exception as e:
+        print(f"❌ Title generation failed with error: {str(e)}")
+    
     print("\n" + "=" * 50)
     print("✅ Process completed successfully!")
     print("=" * 50)
@@ -161,7 +181,8 @@ def main():
     print(f"- Captions JSON: {json_path}")
     print(f"- Keywords data: {output_csv}")
     print(f"- Video clips: {clips_dir}")
-    print(f"- Adjusted timestamps: {os.path.join(clips_dir, 'adjusted_timestamps.csv')}")
+    print(f"- Adjusted timestamps: {adjusted_timestamps_csv}")
+    print(f"- Metadata: {metadata_dir}")
 
 if __name__ == "__main__":
     main()
