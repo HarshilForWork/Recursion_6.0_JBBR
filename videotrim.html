@@ -87,6 +87,14 @@
         <!-- A message area to confirm sign-in -->
         <div id="message" style="margin: 10px 0"></div>
 
+        <!-- File input -->
+        <input
+          type="file"
+          id="video-file"
+          accept="video/*"
+          style="display: none"
+        />
+
         <!-- Video details form -->
         <div id="video-details" class="video-details" style="display: none">
           <h3>Video Details</h3>
@@ -261,21 +269,23 @@ Uploaded from a custom front-end page!</textarea
           if (videoItem.blob) {
             // Use the trimmed/local Blob if available
             video.src = URL.createObjectURL(videoItem.blob);
-            videoFile = videoItem.blob; // Make sure this line is here
+            videoFile = videoItem.blob;
           } else if (videoItem.url) {
             // Otherwise, use the URL version
             video.src = videoItem.url;
 
-            // Fetch the video file and convert to blob if not already available
-            downloadBtn.disabled = true; // Temporarily disable while fetching
-            fetchVideoAsBlob(videoItem.url)
-              .then((blob) => {
-                videoFile = blob; // This is crucial - update the videoFile variable
-                downloadBtn.disabled = false; // Enable download once we have the blob
-              })
-              .catch((err) => {
-                console.error("Error fetching video as blob:", err);
-              });
+            // MODIFIED: Fetch the video file and convert to blob if not already available
+            if (!videoFile) {
+              downloadBtn.disabled = true; // Temporarily disable while fetching
+              fetchVideoAsBlob(videoItem.url)
+                .then((blob) => {
+                  videoFile = blob;
+                  downloadBtn.disabled = false; // Enable download once we have the blob
+                })
+                .catch((err) => {
+                  console.error("Error fetching video as blob:", err);
+                });
+            }
           }
 
           // Reset positions when new video is loaded
@@ -623,9 +633,14 @@ Uploaded from a custom front-end page!</textarea
               }
 
               // For server-side, get extension from original file
-              fileExtension = videoFile.name.substring(
-                videoFile.name.lastIndexOf(".")
-              );
+              if (videoFile.name) {
+                fileExtension = videoFile.name.substring(
+                  videoFile.name.lastIndexOf(".")
+                );
+              } else {
+                // Default extension if name is not available
+                fileExtension = ".mp4";
+              }
             }
 
             // Create download link with proper extension
@@ -732,8 +747,6 @@ Uploaded from a custom front-end page!</textarea
       /**
        * Sign in the user upon button click.
        */
-      // Replace the file input functionality
-      // In the handleAuthClick function, after successful auth:
       function handleAuthClick() {
         document.getElementById("status").textContent = "Authenticating...";
 
@@ -748,11 +761,11 @@ Uploaded from a custom front-end page!</textarea
           accessToken = resp.access_token;
           document.getElementById("message").textContent =
             "Signed in successfully!";
-          // Remove the file input display line since we'll use the main video
+          document.getElementById("video-file").style.display = "block";
           document.getElementById("video-details").style.display = "block";
           document.getElementById("upload-btn").style.display = "block";
           document.getElementById("status").textContent =
-            "Ready to upload. Please use the video from the main section.";
+            "Ready to upload. Please select a video file.";
           document.getElementById("signin-btn").textContent = "Change Account";
           console.log("Successfully signed in with token:", accessToken);
         };
@@ -765,168 +778,25 @@ Uploaded from a custom front-end page!</textarea
         }
       }
 
-      // Completely revised upload function with debugging
+      /**
+       * Upload the selected video to YouTube using resumable upload
+       */
       async function uploadVideo() {
-        console.log("Upload function triggered");
-
-        // Get required elements
-        const video = document.getElementById("video");
+        const fileInput = document.getElementById("video-file");
+        const file = fileInput.files[0];
         const statusElem = document.getElementById("status");
         const progressBar = document.getElementById("progress-bar");
         const progressText = document.getElementById("progress-text");
         const progressContainer = document.getElementById("progress-container");
 
-        // Debug information
-        console.log("Current video source:", video.src);
-        console.log("Access token available:", !!accessToken);
-        console.log("Video file available:", !!videoFile);
+        if (!file) {
+          alert("Please select a video file first.");
+          return;
+        }
 
-        // Clear any previous status
-        statusElem.textContent = "Preparing upload...";
-
-        // Check authentication
         if (!accessToken) {
-          statusElem.textContent =
-            "Error: Not signed in. Please sign in first.";
+          alert("Please sign in first.");
           return;
-        }
-
-        // Check if video is loaded
-        if (!videoFile) {
-          statusElem.textContent =
-            "Error: No video file loaded. Please load a video first.";
-          return;
-        }
-
-        // Get current trim points
-        const currentStartTime = startTime || 0;
-        const currentEndTime = endTime || video.duration;
-        const shouldTrim =
-          currentStartTime > 0 ||
-          (currentEndTime < video.duration && currentEndTime > 0);
-
-        console.log("Trim details:", {
-          currentStartTime,
-          currentEndTime,
-          videoDuration: video.duration,
-          shouldTrim,
-        });
-
-        // Upload the original or trimmed video
-        let uploadFile = videoFile;
-
-        if (shouldTrim) {
-          try {
-            statusElem.textContent = "Trimming video before upload...";
-            console.log("Starting video trim process");
-
-            // Define trimVideoClientSide function if it doesn't exist in this scope
-            if (typeof trimVideoClientSide !== "function") {
-              trimVideoClientSide = function (videoFile, startTime, endTime) {
-                return new Promise((resolve, reject) => {
-                  const videoElement = document.createElement("video");
-                  videoElement.setAttribute("muted", "");
-                  videoElement.setAttribute("playsinline", "");
-
-                  const videoURL = URL.createObjectURL(videoFile);
-                  videoElement.src = videoURL;
-
-                  let mediaRecorder;
-                  let recordedChunks = [];
-
-                  videoElement.onloadedmetadata = function () {
-                    // Create canvas for video frames
-                    const canvas = document.createElement("canvas");
-                    canvas.width = videoElement.videoWidth;
-                    canvas.height = videoElement.videoHeight;
-                    const ctx = canvas.getContext("2d");
-
-                    // Create media stream from canvas
-                    const stream = canvas.captureStream();
-
-                    // Set up MediaRecorder
-                    let options = { mimeType: "video/webm" };
-                    try {
-                      mediaRecorder = new MediaRecorder(stream, options);
-                    } catch (e) {
-                      console.error("MediaRecorder error:", e);
-                      reject(e);
-                      return;
-                    }
-
-                    mediaRecorder.ondataavailable = function (e) {
-                      if (e.data.size > 0) {
-                        recordedChunks.push(e.data);
-                      }
-                    };
-
-                    mediaRecorder.onstop = function () {
-                      const blob = new Blob(recordedChunks, {
-                        type: mediaRecorder.mimeType,
-                      });
-                      URL.revokeObjectURL(videoURL);
-                      resolve(blob);
-                    };
-
-                    // Start recording
-                    mediaRecorder.start();
-
-                    // Draw video frames to canvas
-                    videoElement.currentTime = startTime;
-
-                    videoElement.addEventListener(
-                      "timeupdate",
-                      function onTimeUpdate() {
-                        if (videoElement.currentTime >= endTime) {
-                          mediaRecorder.stop();
-                          videoElement.removeEventListener(
-                            "timeupdate",
-                            onTimeUpdate
-                          );
-                          return;
-                        }
-
-                        // Draw current frame
-                        ctx.drawImage(
-                          videoElement,
-                          0,
-                          0,
-                          canvas.width,
-                          canvas.height
-                        );
-                      }
-                    );
-
-                    videoElement.addEventListener(
-                      "seeked",
-                      function onSeeked() {
-                        videoElement.play();
-                        videoElement.removeEventListener("seeked", onSeeked);
-                      }
-                    );
-                  };
-
-                  videoElement.onerror = function (e) {
-                    console.error("Video element error:", e);
-                    reject(new Error("Error loading video for trimming"));
-                  };
-                });
-              };
-            }
-
-            uploadFile = await trimVideoClientSide(
-              videoFile,
-              currentStartTime,
-              currentEndTime
-            );
-            console.log("Video trimmed successfully", uploadFile);
-            statusElem.textContent =
-              "Video trimmed successfully, preparing upload...";
-          } catch (error) {
-            console.error("Error during trimming:", error);
-            statusElem.textContent = "Error trimming video: " + error.message;
-            return;
-          }
         }
 
         // Get video details from form
@@ -937,27 +807,25 @@ Uploaded from a custom front-end page!</textarea
         const privacyStatus =
           document.getElementById("video-privacy").value || "private";
 
-        // Show progress UI
+        statusElem.textContent = "Starting upload process...";
         progressContainer.style.display = "block";
-        statusElem.textContent = "Starting upload to YouTube...";
 
         try {
-          console.log("Creating upload metadata");
-          // Create metadata
+          // Step 1: Create the video resource metadata
           const metadata = {
             snippet: {
               title: title,
               description: description,
-              tags: ["api upload", "video trimmer"],
-              categoryId: "22", // People & Blogs category
+              tags: ["demo", "upload", "api"],
             },
             status: {
               privacyStatus: privacyStatus,
             },
           };
 
-          console.log("Requesting upload URL from YouTube API");
-          // Get upload URL
+          console.log("Uploading with metadata:", metadata);
+
+          // Step 2: Get a resumable upload URL
           const initResponse = await fetch(
             "https://www.googleapis.com/upload/youtube/v3/videos?uploadType=resumable&part=snippet,status",
             {
@@ -965,8 +833,8 @@ Uploaded from a custom front-end page!</textarea
               headers: {
                 Authorization: "Bearer " + accessToken,
                 "Content-Type": "application/json; charset=UTF-8",
-                "X-Upload-Content-Type": uploadFile.type || "video/mp4",
-                "X-Upload-Content-Length": uploadFile.size,
+                "X-Upload-Content-Type": file.type,
+                "X-Upload-Content-Length": file.size,
               },
               body: JSON.stringify(metadata),
             }
@@ -974,76 +842,72 @@ Uploaded from a custom front-end page!</textarea
 
           if (!initResponse.ok) {
             const errorText = await initResponse.text();
-            console.error(
-              "Upload initialization failed:",
-              initResponse.status,
-              errorText
-            );
             throw new Error(
-              `Upload initialization failed: ${initResponse.status} - ${errorText}`
+              `Failed to initialize upload: ${initResponse.status} ${initResponse.statusText} - ${errorText}`
             );
           }
 
+          // Get the resumable upload URL from the location header
           const uploadUrl = initResponse.headers.get("Location");
           if (!uploadUrl) {
-            throw new Error("No upload URL returned from YouTube API");
+            throw new Error("No upload URL returned from the server");
           }
 
-          console.log("Upload URL received:", uploadUrl);
+          console.log("Got upload URL:", uploadUrl);
           statusElem.textContent =
             "Upload initialized. Uploading video data...";
 
-          // Upload the file
-          const uploadResponse = await fetch(uploadUrl, {
-            method: "PUT",
-            headers: {
-              "Content-Type": uploadFile.type || "video/mp4",
-            },
-            body: uploadFile,
-          });
+          // Step 3: Upload the file in chunks for better reliability
+          const chunkSize = 5 * 1024 * 1024; // 5MB chunks
+          const totalChunks = Math.ceil(file.size / chunkSize);
 
-          console.log("Upload response status:", uploadResponse.status);
+          for (let i = 0; i < totalChunks; i++) {
+            const start = i * chunkSize;
+            const end = Math.min(file.size, start + chunkSize);
+            const chunk = file.slice(start, end);
 
-          if (uploadResponse.status === 200 || uploadResponse.status === 201) {
-            const resultJson = await uploadResponse.json();
-            console.log("Upload completed successfully:", resultJson);
+            const uploadResponse = await fetch(uploadUrl, {
+              method: "PUT",
+              headers: {
+                "Content-Type": file.type,
+                "Content-Range": `bytes ${start}-${end - 1}/${file.size}`,
+              },
+              body: chunk,
+            });
 
-            statusElem.textContent = `Upload successful! Video ID: ${resultJson.id}`;
+            // Update progress bar
+            const progress = Math.round((end / file.size) * 100);
+            progressBar.style.width = `${progress}%`;
+            progressText.textContent = `${progress}%`;
 
-            // Show video link
-            const videoLink = document.createElement("div");
-            videoLink.innerHTML = `<a href="https://www.youtube.com/watch?v=${resultJson.id}" target="_blank">View on YouTube</a> (may still be processing)`;
-            statusElem.appendChild(videoLink);
+            // If this is the last chunk, process the response
+            if (end === file.size) {
+              if (
+                uploadResponse.status === 200 ||
+                uploadResponse.status === 201
+              ) {
+                const resultJson = await uploadResponse.json();
+                statusElem.textContent = `Upload successful! Video ID: ${resultJson.id}`;
+                console.log("Upload complete:", resultJson);
 
-            // Complete the progress bar
-            progressBar.style.width = "100%";
-            progressText.textContent = "100%";
-          } else {
-            const errorText = await uploadResponse.text();
-            throw new Error(
-              `Upload failed: ${uploadResponse.status} - ${errorText}`
-            );
+                // Add a link to view the video
+                const videoLink = document.createElement("div");
+                videoLink.innerHTML = `<a href="https://www.youtube.com/watch?v=${resultJson.id}" target="_blank">View Video (may still be processing)</a>`;
+                statusElem.appendChild(videoLink);
+              } else {
+                const errorText = await uploadResponse.text();
+                throw new Error(
+                  `Upload failed: ${uploadResponse.status} ${uploadResponse.statusText} - ${errorText}`
+                );
+              }
+            }
           }
         } catch (error) {
-          console.error("Upload error:", error);
+          console.error("Error uploading video:", error);
           statusElem.textContent = "Error: " + error.message;
-          progressBar.style.backgroundColor = "#f44336";
+          progressBar.style.backgroundColor = "#f44336"; // Red color for error
         }
       }
-
-      // Make sure the upload button has the correct event handler
-      document.addEventListener("DOMContentLoaded", function () {
-        const uploadBtn = document.getElementById("upload-btn");
-        if (uploadBtn) {
-          // Remove any existing click handlers
-          uploadBtn.removeAttribute("onclick");
-          // Add the event listener directly
-          uploadBtn.addEventListener("click", uploadVideo);
-          console.log("Upload button event listener attached");
-        } else {
-          console.error("Upload button not found in the DOM");
-        }
-      });
 
       // Load the API libraries and set up authentication
       window.onload = function () {

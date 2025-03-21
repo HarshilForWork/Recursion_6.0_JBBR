@@ -1,3 +1,6 @@
+@import url("https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&family=DM+Serif+Display:ital@0;1&display=swap");
+
 @layer reset {
   *,
   *::before,
@@ -81,8 +84,9 @@
       #4acfee
     );
 
-    --ff-heading: "Outfit", sans-serif;
+    --ff-heading: "DM Serif Display";
     --ff-body: "Inter", sans-serif;
+    --ff-el: "DM Mono";
 
     --border-radius-1: 0.25rem;
     --border-radius-2: 0.5rem;
@@ -107,6 +111,12 @@
   body {
     font-family: var(--ff-body);
     color: var(--clr-text-white);
+  }
+
+  ul,
+  li,
+  button {
+    font-family: var(--ff-el);
   }
 
   h1,
@@ -156,9 +166,16 @@
     }
   }
 
+  .logo {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: var(--ff-heading);
+  }
+
   .btn {
     border-radius: var(--border-radius-2);
-    font-family: var(--ff-body);
     cursor: pointer;
     border: none;
     padding: 0.5rem 1.5rem;

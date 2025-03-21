@@ -45,8 +45,8 @@
 }
 
 .centre {
-  margin-inline: 3rem;
-  width: 70%;
+  margin-left: 3rem;
+  width: 100vw;
   height: calc(100vh - 2rem);
   overflow-y: auto;
   padding-bottom: 2rem;
@@ -106,8 +106,6 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  background-color: var(--clr-text-grey);
 }
 
 video {
