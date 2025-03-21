@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Video Trimmer</title>
+    <link rel="stylesheet" href="static/styles/trimmer.css" />
+  </head>
+  <body>
+    <section class="leftbar"></section>
+    <section class="centre">
+      <h1>Video Trimmer</h1>
+
+      <div class="video-container">
+        <video id="video" controls>
+          <source src="" type="video/mp4" />
+          Your browser does not support the video tag.
+        </video>
+      </div>
+
+      <div class="upload-container">
+        <div class="file-input-wrapper">
+          <button class="upload-btn">Select Video File</button>
+          <input type="file" id="video-upload" accept="video/*" />
+        </div>
+      </div>
+
+      <div class="time-display">
+        <span id="start-time">00:00</span>
+        <span id="end-time">00:00</span>
+      </div>
+
+      <div class="timeline">
+        <div class="video-progress" id="video-progress"></div>
+        <div class="trim-handle start" id="start-handle"></div>
+        <div class="trim-region" id="trim-region"></div>
+        <div class="trim-handle end" id="end-handle"></div>
+      </div>
+
+      <div class="trim-method">
+        <h3>Trim Method</h3>
+        <select id="trim-method">
+          <option value="client">Client-side (browser-based)</option>
+          <option value="server">Server-side (requires backend)</option>
+        </select>
+
+        <div id="server-settings" style="display: none">
+          <label for="server-url">Server URL:</label>
+          <input
+            type="text"
+            id="server-url"
+            placeholder="http://localhost:3000/trim"
+            value="http://localhost:3000/trim"
+          />
+        </div>
+      </div>
+
+      <div class="controls">
+        <button id="play-trimmed">Play Trimmed Section</button>
+        <button id="reset-trim">Reset Trim Points</button>
+        <button id="download-btn" disabled class="btn-shadow">
+          Download Trimmed Video
+        </button>
+        <span id="loading" class="loading">Processing video...</span>
+      </div>
+    </section>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const video = document.getElementById("video");
+        const videoUpload = document.getElementById("video-upload");
+        const timeline = document.querySelector(".timeline");
+        const startHandle = document.getElementById("start-handle");
+        const endHandle = document.getElementById("end-handle");
+        const trimRegion = document.getElementById("trim-region");
+        const playTrimmedBtn = document.getElementById("play-trimmed");
+        const resetTrimBtn = document.getElementById("reset-trim");
+        const downloadBtn = document.getElementById("download-btn");
+        const startTimeDisplay = document.getElementById("start-time");
+        const endTimeDisplay = document.getElementById("end-time");
+        const videoProgress = document.getElementById("video-progress");
+        const trimMethodSelect = document.getElementById("trim-method");
+        const serverSettings = document.getElementById("server-settings");
+        const serverUrl = document.getElementById("server-url");
+        const loadingIndicator = document.getElementById("loading");
+
+        let isDragging = false;
+        let currentHandle = null;
+        let startTime = 0;
+        let endTime = 0;
+        let videoDuration = 0;
+        let videoFile = null;
+
+        // Toggle server settings based on trim method
+        trimMethodSelect.addEventListener("change", function () {
+          if (this.value === "server") {
+            serverSettings.style.display = "block";
+          } else {
+            serverSettings.style.display = "none";
+          }
+        });
+
+        // Handle video timeupdate to show progress
+        video.addEventListener("timeupdate", function () {
+          const progressWidth = (video.currentTime / video.duration) * 100;
+          videoProgress.style.width = `${progressWidth}%`;
+        });
+
+        // Load video file
+        videoUpload.addEventListener("change", function (e) {
+          const file = e.target.files[0];
+          if (file) {
+            videoFile = file;
+            const url = URL.createObjectURL(file);
+            video.src = url;
+
+            // Reset positions when new video is loaded
+            video.onloadedmetadata = function () {
+              videoDuration = video.duration;
+              resetTrimPoints();
+
+              // Enable download button
+              downloadBtn.disabled = false;
+            };
+          }
+        });
+
+        // Format time to MM:SS
+        function formatTime(timeInSeconds) {
+          const minutes = Math.floor(timeInSeconds / 60);
+          const seconds = Math.floor(timeInSeconds % 60);
+          return `${minutes
+            .toString()
+            .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+        }
+
+        // Update time displays
+        function updateTimeDisplays() {
+          startTimeDisplay.textContent = formatTime(startTime);
+          endTimeDisplay.textContent = formatTime(endTime);
+        }
+
+        // Update trim region visual
+        function updateTrimRegion() {
+          const startPos = (startTime / videoDuration) * 100;
+          const endPos = (endTime / videoDuration) * 100;
+
+          startHandle.style.left = `${startPos}%`;
+          endHandle.style.left = `${endPos}%`;
+          trimRegion.style.left = `${startPos}%`;
+          trimRegion.style.width = `${endPos - startPos}%`;
+        }
+
+        // Reset trim points
+        function resetTrimPoints() {
+          startTime = 0;
+          endTime = videoDuration;
+          updateTrimRegion();
+          updateTimeDisplays();
+        }
+
+        // Reset button
+        resetTrimBtn.addEventListener("click", resetTrimPoints);
+
+        // Mouse events for dragging handles
+        startHandle.addEventListener("mousedown", function (e) {
+          isDragging = true;
+          currentHandle = "start";
+          e.preventDefault();
+        });
+
+        endHandle.addEventListener("mousedown", function (e) {
+          isDragging = true;
+          currentHandle = "end";
+          e.preventDefault();
+        });
+
+        document.addEventListener("mousemove", function (e) {
+          if (!isDragging) return;
+
+          const timelineRect = timeline.getBoundingClientRect();
+          const posX = e.clientX - timelineRect.left;
+          const posPercentage = Math.max(
+            0,
+            Math.min(100, (posX / timelineRect.width) * 100)
+          );
+
+          if (currentHandle === "start") {
+            // Don't allow start handle to go past end handle
+            const endPos = (endTime / videoDuration) * 100;
+            if (posPercentage < endPos) {
+              startHandle.style.left = `${posPercentage}%`;
+              startTime = (posPercentage / 100) * videoDuration;
+              updateTrimRegion();
+              updateTimeDisplays();
+            }
+          } else if (currentHandle === "end") {
+            // Don't allow end handle to go before start handle
+            const startPos = (startTime / videoDuration) * 100;
+            if (posPercentage > startPos) {
+              endHandle.style.left = `${posPercentage}%`;
+              endTime = (posPercentage / 100) * videoDuration;
+              updateTrimRegion();
+              updateTimeDisplays();
+            }
+          }
+        });
+
+        document.addEventListener("mouseup", function () {
+          isDragging = false;
+          currentHandle = null;
+        });
+
+        // Timeline click to set position
+        timeline.addEventListener("click", function (e) {
+          if (isDragging) return;
+
+          const rect = timeline.getBoundingClientRect();
+          const clickPos = e.clientX - rect.left;
+          const clickTime = (clickPos / rect.width) * videoDuration;
+
+          // Determine if click is closer to start or end handle
+          const startDiff = Math.abs(clickTime - startTime);
+          const endDiff = Math.abs(clickTime - endTime);
+
+          if (startDiff < endDiff) {
+            startTime = clickTime;
+          } else {
+            endTime = clickTime;
+          }
+
+          updateTrimRegion();
+          updateTimeDisplays();
+        });
+
+        // Play trimmed section
+        playTrimmedBtn.addEventListener("click", function () {
+          video.currentTime = startTime;
+          video.play();
+
+          const checkTime = function () {
+            if (video.currentTime >= endTime) {
+              video.pause();
+              video.removeEventListener("timeupdate", checkTime);
+            }
+          };
+
+          video.addEventListener("timeupdate", checkTime);
+        });
+
+        // Client-side video trimming using MediaRecorder
+        async function trimVideoClientSide(videoFile, startTime, endTime) {
+          return new Promise((resolve, reject) => {
+            const videoElement = document.createElement("video");
+            videoElement.setAttribute("muted", "");
+            videoElement.setAttribute("playsinline", "");
+
+            const videoURL = URL.createObjectURL(videoFile);
+            videoElement.src = videoURL;
+
+            let mediaRecorder;
+            let recordedChunks = [];
+
+            videoElement.onloadedmetadata = function () {
+              // Create canvas for video frames
+              const canvas = document.createElement("canvas");
+              canvas.width = videoElement.videoWidth;
+              canvas.height = videoElement.videoHeight;
+              const ctx = canvas.getContext("2d");
+
+              // Create media stream from canvas
+              const stream = canvas.captureStream();
+
+              // Set up MediaRecorder with same MIME type if possible
+              const options = { mimeType: videoFile.type };
+              try {
+                mediaRecorder = new MediaRecorder(stream, options);
+              } catch (e) {
+                // Fallback to a common format
+                mediaRecorder = new MediaRecorder(stream, {
+                  mimeType: "video/webm",
+                });
+              }
+
+              mediaRecorder.ondataavailable = function (e) {
+                if (e.data.size > 0) {
+                  recordedChunks.push(e.data);
+                }
+              };
+
+              mediaRecorder.onstop = function () {
+                const blob = new Blob(recordedChunks, {
+                  type: mediaRecorder.mimeType,
+                });
+                URL.revokeObjectURL(videoURL);
+                resolve(blob);
+              };
+
+              // Start recording
+              mediaRecorder.start();
+
+              // Draw video frames to canvas at appropriate times
+              videoElement.currentTime = startTime;
+
+              videoElement.addEventListener(
+                "timeupdate",
+                function onTimeUpdate() {
+                  if (videoElement.currentTime >= endTime) {
+                    mediaRecorder.stop();
+                    videoElement.removeEventListener(
+                      "timeupdate",
+                      onTimeUpdate
+                    );
+                    return;
+                  }
+
+                  // Draw current frame
+                  ctx.drawImage(
+                    videoElement,
+                    0,
+                    0,
+                    canvas.width,
+                    canvas.height
+                  );
+                }
+              );
+
+              videoElement.addEventListener("seeked", function onSeeked() {
+                // Start playback once we've seeked to the start time
+                videoElement.play();
+                videoElement.removeEventListener("seeked", onSeeked);
+              });
+            };
+
+            videoElement.onerror = function () {
+              reject(new Error("Error loading video"));
+            };
+          });
+        }
+
+        // Server-side trimming function
+        async function trimVideoServerSide(
+          videoFile,
+          startTime,
+          endTime,
+          serverUrl
+        ) {
+          const formData = new FormData();
+          formData.append("video", videoFile);
+          formData.append("startTime", startTime);
+          formData.append("endTime", endTime);
+
+          const response = await fetch(serverUrl, {
+            method: "POST",
+            body: formData,
+          });
+
+          if (!response.ok) {
+            throw new Error(`Server error: ${response.status}`);
+          }
+
+          return await response.blob();
+        }
+
+        // Download trimmed video
+        downloadBtn.addEventListener("click", async function () {
+          if (!videoFile) {
+            alert("Please upload a video first");
+            return;
+          }
+
+          loadingIndicator.style.display = "inline";
+          downloadBtn.disabled = true;
+
+          try {
+            let trimmedVideoBlob;
+            let fileExtension = "";
+
+            if (trimMethodSelect.value === "client") {
+              // Determine the output format based on browser support
+              let mimeType = "video/webm";
+              if (MediaRecorder.isTypeSupported("video/mp4")) {
+                mimeType = "video/mp4";
+                fileExtension = ".mp4";
+              } else {
+                fileExtension = ".webm";
+              }
+
+              // Use the determined mime type for recording
+              trimmedVideoBlob = await trimVideoClientSide(
+                videoFile,
+                startTime,
+                endTime,
+                mimeType
+              );
+            } else {
+              trimmedVideoBlob = await trimVideoServerSide(
+                videoFile,
+                startTime,
+                endTime,
+                serverUrl.value
+              );
+
+              // For server-side, get extension from original file
+              fileExtension = videoFile.name.substring(
+                videoFile.name.lastIndexOf(".")
+              );
+            }
+
+            // Create download link with proper extension
+            const url = URL.createObjectURL(trimmedVideoBlob);
+            const a = document.createElement("a");
+            a.style.display = "none";
+            a.href = url;
+            a.download = "trimmed_video" + fileExtension;
+            document.body.appendChild(a);
+            a.click();
+
+            setTimeout(() => {
+              document.body.removeChild(a);
+              URL.revokeObjectURL(url);
+            }, 100);
+          } catch (error) {
+            console.error("Error trimming video:", error);
+            alert("Error trimming video: " + error.message);
+          } finally {
+            loadingIndicator.style.display = "none";
+            downloadBtn.disabled = false;
+          }
+        });
+      });
+    </script>
+  </body>
+</html>
