@@ -13,8 +13,12 @@ regions = [
 timeframe = "now 7-d"  
 
 import re
-from nltk.corpus import stopwords
-stop_words = set(stopwords.words('english'))
+import spacy
+from spacy.lang.en.stop_words import STOP_WORDS
+
+nlp = spacy.load("en_core_web_sm")
+stop_words = STOP_WORDS
+
 with open('custom_stop_words.txt', 'r') as file:
     custom_stop_words = set(word.strip() for word in file.readlines())
 stop_words.update(custom_stop_words)
