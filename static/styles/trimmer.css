@@ -302,3 +302,9 @@ select {
     outline: none;
   }
 }
+
+.signin-btn {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}

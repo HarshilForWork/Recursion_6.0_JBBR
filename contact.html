@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Contact Us</title>
+    <link rel="stylesheet" href="static/styles/contact.css" />
+
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      crossorigin=""
+    />
+
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+      crossorigin=""
+    ></script>
+
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+  </head>
+  <body>
+    <section>
+      <nav class="navbar">
+        <div class="logo">
+          <img src="static/assets/Logo.jpg" alt="Logo" />trimly.ai
+        </div>
+        <div>
+          <ul role="list">
+            <li>Home</li>
+            <li>My Videos</li>
+            <li>Contact Us</li>
+            <li class="btn btn-light">Login</li>
+            <li class="btn btn-shadow">Sign Up</li>
+          </ul>
+        </div>
+      </nav>
+    </section>
+
+    <section>
+      <div class="contact-content">
+        <div class="contact-form-container">
+          <h2>Send us a Message</h2>
+          <form class="contact-form">
+            <div class="form-group">
+              <label for="name">Full Name</label>
+              <input
+                type="text"
+                id="name"
+                name="name"
+                placeholder="Your name"
+                required
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="email">Email Address</label>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                placeholder="Your email"
+                required
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="subject">Subject</label>
+              <input
+                type="text"
+                id="subject"
+                name="subject"
+                placeholder="What is this regarding?"
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="message">Message</label>
+              <textarea
+                id="message"
+                name="message"
+                rows="5"
+                placeholder="Your message"
+                required
+              ></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-submit">Send Message</button>
+          </form>
+        </div>
+
+        <div class="map-container">
+          <h2>Find Us</h2>
+          <div id="map"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="social-section">
+      <h2>Connect With Us</h2>
+      <div class="social-icons">
+        <a href="#" class="social-icon"><i class="fab fa-twitter"></i></a>
+        <a href="#" class="social-icon"><i class="fab fa-facebook-f"></i></a>
+        <a href="#" class="social-icon"><i class="fab fa-instagram"></i></a>
+        <a href="#" class="social-icon"><i class="fab fa-linkedin-in"></i></a>
+        <a href="#" class="social-icon"><i class="fab fa-github"></i></a>
+      </div>
+    </section>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        // Initialize Leaflet map
+        const map = L.map("map").setView([37.7749, -122.4194], 13); // San Francisco coordinates
+
+        // Add a custom styled map layer
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+          attribution:
+            '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        }).addTo(map);
+
+        // Custom marker icon
+        const customIcon = L.divIcon({
+          className: "custom-map-marker",
+          html: '<div class="marker-pin"></div>',
+          iconSize: [30, 42],
+          iconAnchor: [15, 42],
+        });
+
+        // Add marker for company location
+        const marker = L.marker([37.7749, -122.4194], {
+          icon: customIcon,
+        }).addTo(map);
+
+        // Add popup to marker
+        marker
+          .bindPopup(
+            `
+        <div class="map-popup">
+            <h3>Company Headquarters</h3>
+            <p>123 Innovation Drive</p>
+            <p>Tech Valley, CA 94103</p>
+            <a href="https://maps.google.com/?q=37.7749,-122.4194" target="_blank">Get Directions</a>
+        </div>
+    `
+          )
+          .openPopup();
+
+        // Add custom styles to the map popup
+        const style = document.createElement("style");
+        style.textContent = `
+        .custom-map-marker {
+            position: relative;
+        }
+        
+        .marker-pin {
+            width: 30px;
+            height: 30px;
+            border-radius: 50% 50% 50% 0;
+            background: #6070fd;
+            position: absolute;
+            transform: rotate(-45deg);
+            left: 50%;
+            top: 50%;
+            margin: -15px 0 0 -15px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .marker-pin::after {
+            content: '';
+            width: 14px;
+            height: 14px;
+            margin: 8px 0 0 8px;
+            background: #fff;
+            position: absolute;
+            border-radius: 50%;
+        }
+        
+        .map-popup h3 {
+            color: #000;
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+        
+        .map-popup p {
+            color: #666;
+            margin: 0 0 5px;
+            font-size: 14px;
+        }
+        
+        .map-popup a {
+            color: #6070fd;
+            font-weight: bold;
+            text-decoration: none;
+            font-size: 14px;
+            display: inline-block;
+            margin-top: 5px;
+        }
+        
+        .leaflet-popup-content-wrapper {
+            border-radius: 8px;
+            padding: 5px;
+        }
+    `;
+        document.head.appendChild(style);
+
+        // Form submission handling
+        const contactForm = document.querySelector(".contact-form");
+        if (contactForm) {
+          contactForm.addEventListener("submit", function (e) {
+            e.preventDefault();
+
+            // Get form values
+            const name = document.getElementById("name").value;
+            const email = document.getElementById("email").value;
+            const subject = document.getElementById("subject").value;
+            const message = document.getElementById("message").value;
+
+            // Here you would typically send the form data to a server
+            // For demonstration, we'll just log it and show a success message
+            console.log({
+              name,
+              email,
+              subject,
+              message,
+            });
+
+            // Show success message
+            const formContainer = document.querySelector(
+              ".contact-form-container"
+            );
+            formContainer.innerHTML = `
+                <div class="success-message">
+                    <div class="success-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <h2>Message Sent!</h2>
+                    <p>Thank you for contacting us, ${name}. We'll get back to you shortly.</p>
+                    <button class="btn btn-submit" onclick="location.reload()">Send Another Message</button>
+                </div>
+            `;
+
+            // Add success message styles
+            const successStyle = document.createElement("style");
+            successStyle.textContent = `
+                .success-message {
+                    text-align: center;
+                    padding: 2rem;
+                }
+                
+                .success-icon {
+                    font-size: 4rem;
+                    color: #53f8c9;
+                    margin-bottom: 1.5rem;
+                }
+                
+                .success-message h2 {
+                    margin-bottom: 1rem;
+                }
+                
+                .success-message p {
+                    color: var(--clr-text-grey);
+                    margin-bottom: 2rem;
+                }
+            `;
+            document.head.appendChild(successStyle);
+          });
+        }
+
+        // Add smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
+          anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+
+            const targetId = this.getAttribute("href");
+            if (targetId === "#") return;
+
+            const targetElement = document.querySelector(targetId);
+            if (targetElement) {
+              targetElement.scrollIntoView({
+                behavior: "smooth",
+                block: "start",
+              });
+            }
+          });
+        });
+      });
+    </script>
+  </body>
+</html>
