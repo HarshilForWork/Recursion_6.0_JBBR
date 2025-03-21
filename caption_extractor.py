@@ -82,8 +82,8 @@ if __name__ == "__main__":
         # Interactive mode
         print("YouTube Caption Downloader")
         print("-------------------------")
-        video_url = input("Enter YouTube video URL: ")
-        output_file = input("Enter output file name (leave blank to print to console): ").strip()
+        video_url = 'https://www.youtube.com/watch?v=dLuQ1wSJACU'
+        output_file = "output"
         
         if not output_file:
             output_file = None
