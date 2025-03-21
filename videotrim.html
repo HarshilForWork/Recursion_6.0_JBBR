@@ -5,24 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Video Trimmer</title>
     <link rel="stylesheet" href="static/styles/trimmer.css" />
+    <script src="https://apis.google.com/js/api.js"></script>
+    <script src="https://accounts.google.com/gsi/client"></script>
   </head>
-  <body>
-    <section class="leftbar"></section>
-    <section class="centre">
-      <h1>Video Trimmer</h1>
+  <body class="container">
+    <section class="leftbar" id="leftbar">
+      <div class="section-title">
+        <h2 class="grad">Video Library</h2>
+      </div>
+
+      <div class="video-list" id="video-list"></div>
+    </section>
+
+    <section class="centre" id="centre">
+      <div class="section-title main-title">
+        <h2 class="grad">Video Trimmer</h2>
+      </div>
 
       <div class="video-container">
         <video id="video" controls>
           <source src="" type="video/mp4" />
           Your browser does not support the video tag.
         </video>
-      </div>
-
-      <div class="upload-container">
-        <div class="file-input-wrapper">
-          <button class="upload-btn">Select Video File</button>
-          <input type="file" id="video-upload" accept="video/*" />
-        </div>
       </div>
 
       <div class="time-display">
@@ -37,38 +41,118 @@
         <div class="trim-handle end" id="end-handle"></div>
       </div>
 
-      <div class="trim-method">
-        <h3>Trim Method</h3>
-        <select id="trim-method">
-          <option value="client">Client-side (browser-based)</option>
-          <option value="server">Server-side (requires backend)</option>
-        </select>
-
-        <div id="server-settings" style="display: none">
-          <label for="server-url">Server URL:</label>
-          <input
-            type="text"
-            id="server-url"
-            placeholder="http://localhost:3000/trim"
-            value="http://localhost:3000/trim"
-          />
-        </div>
-      </div>
-
       <div class="controls">
         <button id="play-trimmed">Play Trimmed Section</button>
-        <button id="reset-trim">Reset Trim Points</button>
+        <button id="reset-trim">Reset Trim</button>
         <button id="download-btn" disabled class="btn-shadow">
-          Download Trimmed Video
+          Download video
         </button>
+        <button id="toggle-sidebar">Toggle Panels</button>
         <span id="loading" class="loading">Processing video...</span>
+      </div>
+    </section>
+
+    <section class="rightbar" id="rightbar">
+      <div class="section-title">
+        <h2 class="grad">Upload to YT</h2>
+      </div>
+      <div class="right-content">
+        <button id="signin-btn" onclick="handleAuthClick()">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 48 48"
+          >
+            <path
+              fill="#ffc107"
+              d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8c-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4C12.955 4 4 12.955 4 24s8.955 20 20 20s20-8.955 20-20c0-1.341-.138-2.65-.389-3.917"
+            />
+            <path
+              fill="#ff3d00"
+              d="m6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4C16.318 4 9.656 8.337 6.306 14.691"
+            />
+            <path
+              fill="#4caf50"
+              d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238A11.9 11.9 0 0 1 24 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44"
+            />
+            <path
+              fill="#1976d2"
+              d="M43.611 20.083H42V20H24v8h11.303a12.04 12.04 0 0 1-4.087 5.571l.003-.002l6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917"
+            />
+          </svg>
+          Sign In with Google
+        </button>
+
+        <!-- A message area to confirm sign-in -->
+        <div id="message" style="margin: 10px 0"></div>
+
+        <!-- Video details form -->
+        <div id="video-details" class="video-details" style="display: none">
+          <h3>Video Details</h3>
+          <div>
+            <label for="video-title">Title:</label>
+            <input type="text" id="video-title" value="My Demo Video Upload" />
+          </div>
+          <div style="margin-top: 10px">
+            <label for="video-description">Description:</label>
+            <textarea id="video-description" rows="3" style="width: 300px">
+Uploaded from a custom front-end page!</textarea
+            >
+          </div>
+          <div style="margin-top: 10px">
+            <label for="video-privacy">Privacy:</label>
+            <select id="video-privacy">
+              <option value="private">Private</option>
+              <option value="unlisted">Unlisted</option>
+              <option value="public">Public</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Upload button -->
+        <button
+          id="upload-btn"
+          onclick="uploadVideo()"
+          style="margin-top: 20px; display: none"
+        >
+          Upload Video
+        </button>
+
+        <!-- Progress bar for upload -->
+        <div
+          id="progress-container"
+          style="margin-top: 20px; width: 100%; max-width: 500px; display: none"
+        >
+          <div
+            style="
+              width: 100%;
+              background-color: #f0f0f0;
+              border-radius: 4px;
+              overflow: hidden;
+            "
+          >
+            <div
+              id="progress-bar"
+              style="
+                height: 20px;
+                width: 0%;
+                background-color: #4285f4;
+                transition: width 0.5s;
+              "
+            ></div>
+          </div>
+          <div id="progress-text" style="margin-top: 5px">0%</div>
+        </div>
+
+        <!-- Status message for upload results -->
+        <p id="status"></p>
       </div>
     </section>
 
     <script>
       document.addEventListener("DOMContentLoaded", function () {
         const video = document.getElementById("video");
-        const videoUpload = document.getElementById("video-upload");
         const timeline = document.querySelector(".timeline");
         const startHandle = document.getElementById("start-handle");
         const endHandle = document.getElementById("end-handle");
@@ -80,9 +164,31 @@
         const endTimeDisplay = document.getElementById("end-time");
         const videoProgress = document.getElementById("video-progress");
         const trimMethodSelect = document.getElementById("trim-method");
-        const serverSettings = document.getElementById("server-settings");
         const serverUrl = document.getElementById("server-url");
         const loadingIndicator = document.getElementById("loading");
+        const videoListElement = document.getElementById("video-list");
+        const toggleSidebarBtn = document.getElementById("toggle-sidebar");
+        const leftbar = document.getElementById("leftbar");
+        const centre = document.getElementById("centre");
+        const rightbar = document.getElementById("rightbar");
+
+        // Toggle sidebar functionality
+        let sidebarVisible = true;
+        toggleSidebarBtn.addEventListener("click", function () {
+          sidebarVisible = !sidebarVisible;
+
+          if (sidebarVisible) {
+            // Show left sidebar, hide right sidebar
+            leftbar.classList.remove("hidden");
+            rightbar.classList.add("hidden");
+            centre.classList.remove("expanded");
+          } else {
+            // Hide left sidebar, show right sidebar
+            leftbar.classList.add("hidden");
+            rightbar.classList.remove("hidden");
+            centre.classList.add("expanded");
+          }
+        });
 
         let isDragging = false;
         let currentHandle = null;
@@ -91,14 +197,9 @@
         let videoDuration = 0;
         let videoFile = null;
 
-        // Toggle server settings based on trim method
-        trimMethodSelect.addEventListener("change", function () {
-          if (this.value === "server") {
-            serverSettings.style.display = "block";
-          } else {
-            serverSettings.style.display = "none";
-          }
-        });
+        // Array to store video objects
+        let videos = [];
+        let activeVideoIndex = -1;
 
         // Handle video timeupdate to show progress
         video.addEventListener("timeupdate", function () {
@@ -106,24 +207,126 @@
           videoProgress.style.width = `${progressWidth}%`;
         });
 
-        // Load video file
-        videoUpload.addEventListener("change", function (e) {
-          const file = e.target.files[0];
-          if (file) {
-            videoFile = file;
-            const url = URL.createObjectURL(file);
-            video.src = url;
+        // Function to populate the video list
+        function populateVideoList(videoArray) {
+          videoListElement.innerHTML = ""; // Clear existing items
+          videoArray.forEach((videoItem, index) => {
+            const videoContainer = document.createElement("div");
+            videoContainer.className = "video-item";
+            if (index === activeVideoIndex) {
+              videoContainer.classList.add("active");
+            }
+            videoContainer.dataset.index = index;
 
-            // Reset positions when new video is loaded
-            video.onloadedmetadata = function () {
-              videoDuration = video.duration;
-              resetTrimPoints();
+            // Create a video element for preview
+            const videoPreview = document.createElement("video");
+            videoPreview.src = videoItem.url;
+            videoPreview.className = "video-preview";
+            videoPreview.muted = true; // Mute to avoid auto-play issues
+            videoPreview.playsInline = true; // For mobile devices
+            videoPreview.preload = "metadata"; // Load minimal data for the preview
+            videoPreview.controls = false; // No controls in the sidebar
 
-              // Enable download button
-              downloadBtn.disabled = false;
-            };
+            // Ensure the video stays paused after loading its data
+            videoPreview.addEventListener("loadeddata", () => {
+              videoPreview.pause();
+            });
+
+            // Optionally, you can add a poster image if available:
+            // videoPreview.poster = videoItem.poster || '';
+
+            // When the user clicks on the preview, load the corresponding video
+            videoContainer.addEventListener("click", () => {
+              loadVideo(index);
+            });
+
+            videoContainer.appendChild(videoPreview);
+            videoListElement.appendChild(videoContainer);
+          });
+        }
+
+        // Function to load a video into the main player
+        // Find this part in the loadVideo function
+        function loadVideo(index) {
+          if (index < 0 || index >= videos.length) return;
+
+          // Update active video index
+          activeVideoIndex = index;
+          const videoItem = videos[index];
+
+          // Update UI to show active video
+          populateVideoList(videos);
+
+          // Load video into player
+          if (videoItem.blob) {
+            // Use the trimmed/local Blob if available
+            video.src = URL.createObjectURL(videoItem.blob);
+            videoFile = videoItem.blob; // Make sure this line is here
+          } else if (videoItem.url) {
+            // Otherwise, use the URL version
+            video.src = videoItem.url;
+
+            // Fetch the video file and convert to blob if not already available
+            downloadBtn.disabled = true; // Temporarily disable while fetching
+            fetchVideoAsBlob(videoItem.url)
+              .then((blob) => {
+                videoFile = blob; // This is crucial - update the videoFile variable
+                downloadBtn.disabled = false; // Enable download once we have the blob
+              })
+              .catch((err) => {
+                console.error("Error fetching video as blob:", err);
+              });
           }
-        });
+
+          // Reset positions when new video is loaded
+          video.onloadedmetadata = function () {
+            videoDuration = video.duration;
+
+            // Update the duration in the video object if not set
+            if (!videoItem.duration) {
+              videos[index].duration = videoDuration;
+              populateVideoList(videos);
+            }
+
+            resetTrimPoints();
+          };
+        }
+
+        // ADD THIS FUNCTION: Helper function to fetch a video URL and return as a blob
+        async function fetchVideoAsBlob(url) {
+          try {
+            const response = await fetch(url);
+            if (!response.ok) {
+              throw new Error(
+                `Failed to fetch video: ${response.status} ${response.statusText}`
+              );
+            }
+            return await response.blob();
+          } catch (error) {
+            console.error("Error fetching video:", error);
+            throw error;
+          }
+        }
+
+        // Add a video to the library
+        function addVideoToLibrary(file, name = null) {
+          const videoName = name || file.name || `Video ${videos.length + 1}`;
+
+          // Create video object
+          const videoObject = {
+            name: videoName,
+            blob: file,
+          };
+
+          // Add to videos array
+          videos.push(videoObject);
+
+          // Refresh the video list
+          populateVideoList(videos);
+
+          // Return the index of the newly added video
+          return videos.length - 1;
+        }
 
         // Format time to MM:SS
         function formatTime(timeInSeconds) {
@@ -376,7 +579,7 @@
             let trimmedVideoBlob;
             let fileExtension = "";
 
-            if (trimMethodSelect.value === "client") {
+            if (trimMethodSelect && trimMethodSelect.value === "client") {
               // Determine the output format based on browser support
               let mimeType = "video/webm";
               if (MediaRecorder.isTypeSupported("video/mp4")) {
@@ -394,12 +597,30 @@
                 mimeType
               );
             } else {
-              trimmedVideoBlob = await trimVideoServerSide(
-                videoFile,
-                startTime,
-                endTime,
-                serverUrl.value
-              );
+              if (serverUrl) {
+                trimmedVideoBlob = await trimVideoServerSide(
+                  videoFile,
+                  startTime,
+                  endTime,
+                  serverUrl.value
+                );
+              } else {
+                // Fallback to client-side if serverUrl is not defined
+                let mimeType = "video/webm";
+                if (MediaRecorder.isTypeSupported("video/mp4")) {
+                  mimeType = "video/mp4";
+                  fileExtension = ".mp4";
+                } else {
+                  fileExtension = ".webm";
+                }
+
+                trimmedVideoBlob = await trimVideoClientSide(
+                  videoFile,
+                  startTime,
+                  endTime,
+                  mimeType
+                );
+              }
 
               // For server-side, get extension from original file
               fileExtension = videoFile.name.substring(
@@ -428,7 +649,408 @@
             downloadBtn.disabled = false;
           }
         });
+
+        // Sample videos - only contain the URL as requested
+        const sampleVideos = [
+          {
+            name: "Sample Video 1",
+            url: "static/assets/card3.mp4",
+          },
+          {
+            name: "Sample Video 2",
+            url: "static/assets/card2.mp4",
+          },
+          {
+            name: "Sample Video 3",
+            url: "static/assets/card4.mp4",
+          },
+        ];
+
+        // Initialize the video library with sample videos
+        videos = [...sampleVideos];
+        populateVideoList(videos);
+        if (videos.length > 0) {
+          loadVideo(0);
+        }
+
+        // Initialize with the right sidebar hidden
+        rightbar.classList.add("hidden");
       });
+
+      // Client ID and API key
+      const CLIENT_ID =
+        "346305436724-ndv2tg5mvduf7n2339mn9vsh0ctetfk3.apps.googleusercontent.com";
+      const API_KEY = ""; // Add your API key if needed
+
+      // YouTube API scope
+      const SCOPES = "https://www.googleapis.com/auth/youtube.upload";
+
+      let tokenClient;
+      let accessToken = "";
+
+      /**
+       * Callback after the API client is loaded. Loads the discovery doc
+       * to initialize the API.
+       */
+      function gapiLoaded() {
+        gapi.load("client", initializeGapiClient);
+      }
+
+      /**
+       * Initialize the API client library
+       */
+      async function initializeGapiClient() {
+        try {
+          await gapi.client.init({
+            apiKey: API_KEY,
+            discoveryDocs: [
+              "https://www.googleapis.com/discovery/v1/apis/youtube/v3/rest",
+            ],
+          });
+          console.log("GAPI client initialized");
+          // Update UI after initialization is complete
+          document.getElementById("signin-btn").disabled = false;
+        } catch (err) {
+          document.getElementById("status").textContent =
+            "Error initializing GAPI client: " + err.message;
+          console.error("Error initializing GAPI client:", err);
+        }
+      }
+
+      /**
+       * Callback after Google Identity Services are loaded.
+       */
+      function gisLoaded() {
+        tokenClient = google.accounts.oauth2.initTokenClient({
+          client_id: CLIENT_ID,
+          scope: SCOPES,
+          callback: "", // defined later
+        });
+        console.log("GIS loaded");
+      }
+
+      /**
+       * Sign in the user upon button click.
+       */
+      // Replace the file input functionality
+      // In the handleAuthClick function, after successful auth:
+      function handleAuthClick() {
+        document.getElementById("status").textContent = "Authenticating...";
+
+        tokenClient.callback = async (resp) => {
+          if (resp.error !== undefined) {
+            document.getElementById("status").textContent =
+              "Error: " + resp.error;
+            console.error("Error signing in:", resp);
+            return;
+          }
+
+          accessToken = resp.access_token;
+          document.getElementById("message").textContent =
+            "Signed in successfully!";
+          // Remove the file input display line since we'll use the main video
+          document.getElementById("video-details").style.display = "block";
+          document.getElementById("upload-btn").style.display = "block";
+          document.getElementById("status").textContent =
+            "Ready to upload. Please use the video from the main section.";
+          document.getElementById("signin-btn").textContent = "Change Account";
+          console.log("Successfully signed in with token:", accessToken);
+        };
+
+        // Prompt the user to select an account
+        if (accessToken === "") {
+          tokenClient.requestAccessToken({ prompt: "consent" });
+        } else {
+          tokenClient.requestAccessToken({ prompt: "" });
+        }
+      }
+
+      // Completely revised upload function with debugging
+      async function uploadVideo() {
+        console.log("Upload function triggered");
+
+        // Get required elements
+        const video = document.getElementById("video");
+        const statusElem = document.getElementById("status");
+        const progressBar = document.getElementById("progress-bar");
+        const progressText = document.getElementById("progress-text");
+        const progressContainer = document.getElementById("progress-container");
+
+        // Debug information
+        console.log("Current video source:", video.src);
+        console.log("Access token available:", !!accessToken);
+        console.log("Video file available:", !!videoFile);
+
+        // Clear any previous status
+        statusElem.textContent = "Preparing upload...";
+
+        // Check authentication
+        if (!accessToken) {
+          statusElem.textContent =
+            "Error: Not signed in. Please sign in first.";
+          return;
+        }
+
+        // Check if video is loaded
+        if (!videoFile) {
+          statusElem.textContent =
+            "Error: No video file loaded. Please load a video first.";
+          return;
+        }
+
+        // Get current trim points
+        const currentStartTime = startTime || 0;
+        const currentEndTime = endTime || video.duration;
+        const shouldTrim =
+          currentStartTime > 0 ||
+          (currentEndTime < video.duration && currentEndTime > 0);
+
+        console.log("Trim details:", {
+          currentStartTime,
+          currentEndTime,
+          videoDuration: video.duration,
+          shouldTrim,
+        });
+
+        // Upload the original or trimmed video
+        let uploadFile = videoFile;
+
+        if (shouldTrim) {
+          try {
+            statusElem.textContent = "Trimming video before upload...";
+            console.log("Starting video trim process");
+
+            // Define trimVideoClientSide function if it doesn't exist in this scope
+            if (typeof trimVideoClientSide !== "function") {
+              trimVideoClientSide = function (videoFile, startTime, endTime) {
+                return new Promise((resolve, reject) => {
+                  const videoElement = document.createElement("video");
+                  videoElement.setAttribute("muted", "");
+                  videoElement.setAttribute("playsinline", "");
+
+                  const videoURL = URL.createObjectURL(videoFile);
+                  videoElement.src = videoURL;
+
+                  let mediaRecorder;
+                  let recordedChunks = [];
+
+                  videoElement.onloadedmetadata = function () {
+                    // Create canvas for video frames
+                    const canvas = document.createElement("canvas");
+                    canvas.width = videoElement.videoWidth;
+                    canvas.height = videoElement.videoHeight;
+                    const ctx = canvas.getContext("2d");
+
+                    // Create media stream from canvas
+                    const stream = canvas.captureStream();
+
+                    // Set up MediaRecorder
+                    let options = { mimeType: "video/webm" };
+                    try {
+                      mediaRecorder = new MediaRecorder(stream, options);
+                    } catch (e) {
+                      console.error("MediaRecorder error:", e);
+                      reject(e);
+                      return;
+                    }
+
+                    mediaRecorder.ondataavailable = function (e) {
+                      if (e.data.size > 0) {
+                        recordedChunks.push(e.data);
+                      }
+                    };
+
+                    mediaRecorder.onstop = function () {
+                      const blob = new Blob(recordedChunks, {
+                        type: mediaRecorder.mimeType,
+                      });
+                      URL.revokeObjectURL(videoURL);
+                      resolve(blob);
+                    };
+
+                    // Start recording
+                    mediaRecorder.start();
+
+                    // Draw video frames to canvas
+                    videoElement.currentTime = startTime;
+
+                    videoElement.addEventListener(
+                      "timeupdate",
+                      function onTimeUpdate() {
+                        if (videoElement.currentTime >= endTime) {
+                          mediaRecorder.stop();
+                          videoElement.removeEventListener(
+                            "timeupdate",
+                            onTimeUpdate
+                          );
+                          return;
+                        }
+
+                        // Draw current frame
+                        ctx.drawImage(
+                          videoElement,
+                          0,
+                          0,
+                          canvas.width,
+                          canvas.height
+                        );
+                      }
+                    );
+
+                    videoElement.addEventListener(
+                      "seeked",
+                      function onSeeked() {
+                        videoElement.play();
+                        videoElement.removeEventListener("seeked", onSeeked);
+                      }
+                    );
+                  };
+
+                  videoElement.onerror = function (e) {
+                    console.error("Video element error:", e);
+                    reject(new Error("Error loading video for trimming"));
+                  };
+                });
+              };
+            }
+
+            uploadFile = await trimVideoClientSide(
+              videoFile,
+              currentStartTime,
+              currentEndTime
+            );
+            console.log("Video trimmed successfully", uploadFile);
+            statusElem.textContent =
+              "Video trimmed successfully, preparing upload...";
+          } catch (error) {
+            console.error("Error during trimming:", error);
+            statusElem.textContent = "Error trimming video: " + error.message;
+            return;
+          }
+        }
+
+        // Get video details from form
+        const title =
+          document.getElementById("video-title").value || "Untitled Video";
+        const description =
+          document.getElementById("video-description").value || "";
+        const privacyStatus =
+          document.getElementById("video-privacy").value || "private";
+
+        // Show progress UI
+        progressContainer.style.display = "block";
+        statusElem.textContent = "Starting upload to YouTube...";
+
+        try {
+          console.log("Creating upload metadata");
+          // Create metadata
+          const metadata = {
+            snippet: {
+              title: title,
+              description: description,
+              tags: ["api upload", "video trimmer"],
+              categoryId: "22", // People & Blogs category
+            },
+            status: {
+              privacyStatus: privacyStatus,
+            },
+          };
+
+          console.log("Requesting upload URL from YouTube API");
+          // Get upload URL
+          const initResponse = await fetch(
+            "https://www.googleapis.com/upload/youtube/v3/videos?uploadType=resumable&part=snippet,status",
+            {
+              method: "POST",
+              headers: {
+                Authorization: "Bearer " + accessToken,
+                "Content-Type": "application/json; charset=UTF-8",
+                "X-Upload-Content-Type": uploadFile.type || "video/mp4",
+                "X-Upload-Content-Length": uploadFile.size,
+              },
+              body: JSON.stringify(metadata),
+            }
+          );
+
+          if (!initResponse.ok) {
+            const errorText = await initResponse.text();
+            console.error(
+              "Upload initialization failed:",
+              initResponse.status,
+              errorText
+            );
+            throw new Error(
+              `Upload initialization failed: ${initResponse.status} - ${errorText}`
+            );
+          }
+
+          const uploadUrl = initResponse.headers.get("Location");
+          if (!uploadUrl) {
+            throw new Error("No upload URL returned from YouTube API");
+          }
+
+          console.log("Upload URL received:", uploadUrl);
+          statusElem.textContent =
+            "Upload initialized. Uploading video data...";
+
+          // Upload the file
+          const uploadResponse = await fetch(uploadUrl, {
+            method: "PUT",
+            headers: {
+              "Content-Type": uploadFile.type || "video/mp4",
+            },
+            body: uploadFile,
+          });
+
+          console.log("Upload response status:", uploadResponse.status);
+
+          if (uploadResponse.status === 200 || uploadResponse.status === 201) {
+            const resultJson = await uploadResponse.json();
+            console.log("Upload completed successfully:", resultJson);
+
+            statusElem.textContent = `Upload successful! Video ID: ${resultJson.id}`;
+
+            // Show video link
+            const videoLink = document.createElement("div");
+            videoLink.innerHTML = `<a href="https://www.youtube.com/watch?v=${resultJson.id}" target="_blank">View on YouTube</a> (may still be processing)`;
+            statusElem.appendChild(videoLink);
+
+            // Complete the progress bar
+            progressBar.style.width = "100%";
+            progressText.textContent = "100%";
+          } else {
+            const errorText = await uploadResponse.text();
+            throw new Error(
+              `Upload failed: ${uploadResponse.status} - ${errorText}`
+            );
+          }
+        } catch (error) {
+          console.error("Upload error:", error);
+          statusElem.textContent = "Error: " + error.message;
+          progressBar.style.backgroundColor = "#f44336";
+        }
+      }
+
+      // Make sure the upload button has the correct event handler
+      document.addEventListener("DOMContentLoaded", function () {
+        const uploadBtn = document.getElementById("upload-btn");
+        if (uploadBtn) {
+          // Remove any existing click handlers
+          uploadBtn.removeAttribute("onclick");
+          // Add the event listener directly
+          uploadBtn.addEventListener("click", uploadVideo);
+          console.log("Upload button event listener attached");
+        } else {
+          console.error("Upload button not found in the DOM");
+        }
+      });
+
+      // Load the API libraries and set up authentication
+      window.onload = function () {
+        document.getElementById("signin-btn").disabled = true;
+        gapiLoaded();
+        gisLoaded();
+      };
     </script>
   </body>
 </html>
