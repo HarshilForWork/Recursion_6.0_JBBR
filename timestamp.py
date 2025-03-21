@@ -5,7 +5,7 @@ from moviepy.video.io.VideoFileClip import VideoFileClip
 import yt_dlp
 from caption_extractor import extract_video_id
 
-def process_video(youtube_url, time_range=15, output_dir='clips'):
+def process_video(youtube_url, time_range=15, output_dir='clips', keywords_csv='output.csv', captions_json='output.json', top_n=5):
     """
     Process a YouTube video to create clips around keywords
     
@@ -13,6 +13,9 @@ def process_video(youtube_url, time_range=15, output_dir='clips'):
         youtube_url (str): YouTube video URL or ID
         time_range (int): Time range in seconds to capture around keywords
         output_dir (str): Directory to save the clips
+        keywords_csv (str): Path to keywords CSV file
+        captions_json (str): Path to captions JSON file
+        top_n (int): Number of top keywords to process
     """
     # Create output directory if it doesn't exist
     if not os.path.exists(output_dir):
@@ -20,19 +23,19 @@ def process_video(youtube_url, time_range=15, output_dir='clips'):
     
     # Load data files
     try:
-        df = pd.read_csv('output.csv')
-        df_json = pd.read_json('output.json')
+        df = pd.read_csv(keywords_csv)
+        df_json = pd.read_json(captions_json)
     except Exception as e:
         print(f"Error loading data files: {str(e)}")
         return False
     
-    # Get top 5 words
-    top_5_words = df.nlargest(5, 'Value')['Item']
-    print(f"Processing clips for top keywords: {list(top_5_words)}")
+    # Get top words
+    top_words = df.nlargest(top_n, 'Value')['Item']
+    print(f"Processing clips for top {top_n} keywords: {list(top_words)}")
     
     # Find first occurrence of each top word
     word_occurrences = {}
-    for word in top_5_words:
+    for word in top_words:
         match = df_json[df_json['text'].str.contains(word, case=False, na=False)].head(1)
         if not match.empty:
             word_occurrences[word] = match[['text', 'start', 'duration']].to_dict('records')
@@ -57,7 +60,7 @@ def process_video(youtube_url, time_range=15, output_dir='clips'):
     
     # Save adjusted timestamps to a CSV file
     timestamps_df = pd.DataFrame(adjusted_timestamps)
-    timestamps_csv_path = os.path.join(output_dir, 'adjusted_timestamps.csv')
+    timestamps_csv_path = os.path.join('.output', 'adjusted_timestamps.csv')
     timestamps_df.to_csv(timestamps_csv_path, index=False)
     print(f"Adjusted timestamps saved to {timestamps_csv_path}")
     
@@ -159,6 +162,9 @@ if __name__ == "__main__":
     youtube_url = 'https://www.youtube.com/watch?v=dLuQ1wSJACU'
     time_range = 15
     output_dir = 'clips'
+    keywords_csv = 'output.csv'
+    captions_json = 'output.json'
+    top_n = 5
     
     # Parse command line arguments
     if len(sys.argv) > 1:
@@ -170,5 +176,14 @@ if __name__ == "__main__":
             print(f"Invalid time range: {sys.argv[2]}. Using default: 15 seconds")
     if len(sys.argv) > 3:
         output_dir = sys.argv[3]
+    if len(sys.argv) > 4:
+        keywords_csv = sys.argv[4]
+    if len(sys.argv) > 5:
+        captions_json = sys.argv[5]
+    if len(sys.argv) > 6:
+        try:
+            top_n = int(sys.argv[6])
+        except ValueError:
+            print(f"Invalid top_n: {sys.argv[6]}. Using default: 5 keywords")
     
-    process_video(youtube_url, time_range, output_dir)
+    process_video(youtube_url, time_range, output_dir, keywords_csv, captions_json, top_n)

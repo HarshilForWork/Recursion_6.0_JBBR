@@ -103,7 +103,7 @@ def analyze_trends(json_path='output.json', custom_stop_words_path='custom_stop_
         print("No trend data was retrieved.")
         # Create a sample output for testing purposes
         sorted_df = pd.DataFrame(
-            [(k, i) for i, k in enumerate(reversed(keywords_list[:5]), 1)],
+            [(k, i) for i, k in enumerate(reversed(keywords_list[:20]), 1)],
             columns=['Item', 'Value']
         )
         sorted_df.to_csv(output_path, index=False)
