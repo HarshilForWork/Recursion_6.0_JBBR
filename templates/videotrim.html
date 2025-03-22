@@ -34,16 +34,8 @@
         <span id="end-time">00:00</span>
       </div>
 
-      <div class="timeline">
-        <div class="video-progress" id="video-progress"></div>
-        <div class="trim-handle start" id="start-handle"></div>
-        <div class="trim-region" id="trim-region"></div>
-        <div class="trim-handle end" id="end-handle"></div>
-      </div>
-
       <div class="controls">
-        <button id="play-trimmed">Play Trimmed Section</button>
-        <button id="reset-trim">Reset Trim</button>
+        <button id="play-trimmed">Play video</button>
         <button id="download-btn" disabled class="btn-shadow">
           Download video
         </button>
@@ -60,8 +52,8 @@
         <button id="signin-btn" onclick="handleAuthClick()">
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            width="48"
-            height="48"
+            width="24"
+            height="24"
             viewBox="0 0 48 48"
           >
             <path
@@ -116,6 +108,16 @@ Uploaded from a custom front-end page!</textarea
               <option value="public">Public</option>
             </select>
           </div>
+
+          <div style="margin-top: 10px">
+            <label for="video-tags">Tags (comma separated):</label>
+            <input
+              type="text"
+              id="video-tags"
+              value="demo,upload,api"
+              placeholder="tag1, tag2, tag3"
+            />
+          </div>
         </div>
 
         <!-- Upload button -->
@@ -160,60 +162,92 @@ Uploaded from a custom front-end page!</textarea
 
     <script>
       document.addEventListener("DOMContentLoaded", function () {
+        console.log("DOM Content Loaded");
+
+        // Get all DOM elements
         const video = document.getElementById("video");
-        const timeline = document.querySelector(".timeline");
-        const startHandle = document.getElementById("start-handle");
-        const endHandle = document.getElementById("end-handle");
-        const trimRegion = document.getElementById("trim-region");
-        const playTrimmedBtn = document.getElementById("play-trimmed");
-        const resetTrimBtn = document.getElementById("reset-trim");
         const downloadBtn = document.getElementById("download-btn");
         const startTimeDisplay = document.getElementById("start-time");
         const endTimeDisplay = document.getElementById("end-time");
-        const videoProgress = document.getElementById("video-progress");
-        const trimMethodSelect = document.getElementById("trim-method");
-        const serverUrl = document.getElementById("server-url");
         const loadingIndicator = document.getElementById("loading");
         const videoListElement = document.getElementById("video-list");
         const toggleSidebarBtn = document.getElementById("toggle-sidebar");
         const leftbar = document.getElementById("leftbar");
         const centre = document.getElementById("centre");
         const rightbar = document.getElementById("rightbar");
+        const playTrimmedBtn = document.getElementById("play-trimmed");
+        const fileInput = document.getElementById("video-file");
 
-        // Toggle sidebar functionality
-        let sidebarVisible = true;
-        toggleSidebarBtn.addEventListener("click", function () {
-          sidebarVisible = !sidebarVisible;
-
-          if (sidebarVisible) {
-            // Show left sidebar, hide right sidebar
-            leftbar.classList.remove("hidden");
-            rightbar.classList.add("hidden");
-            centre.classList.remove("expanded");
-          } else {
-            // Hide left sidebar, show right sidebar
-            leftbar.classList.add("hidden");
-            rightbar.classList.remove("hidden");
-            centre.classList.add("expanded");
-          }
+        console.log("Elements loaded:", {
+          video: !!video,
+          downloadBtn: !!downloadBtn,
+          toggleSidebarBtn: !!toggleSidebarBtn,
+          leftbar: !!leftbar,
+          rightbar: !!rightbar,
         });
 
+        // Initialize variables
         let isDragging = false;
         let currentHandle = null;
         let startTime = 0;
         let endTime = 0;
         let videoDuration = 0;
         let videoFile = null;
-
-        // Array to store video objects
         let videos = [];
         let activeVideoIndex = -1;
+        let sidebarVisible = true;
 
-        // Handle video timeupdate to show progress
-        video.addEventListener("timeupdate", function () {
-          const progressWidth = (video.currentTime / video.duration) * 100;
-          videoProgress.style.width = `${progressWidth}%`;
-        });
+        // Format time to MM:SS
+        function formatTime(timeInSeconds) {
+          const minutes = Math.floor(timeInSeconds / 60);
+          const seconds = Math.floor(timeInSeconds % 60);
+          return `${minutes
+            .toString()
+            .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+        }
+
+        // Update time displays
+        function updateTimeDisplays() {
+          startTimeDisplay.textContent = formatTime(startTime);
+          endTimeDisplay.textContent = formatTime(endTime);
+        }
+
+        // Reset trim points
+        function resetTrimPoints() {
+          startTime = 0;
+          endTime = videoDuration;
+          updateTimeDisplays();
+        }
+
+        if (fileInput) {
+          fileInput.addEventListener("change", function (event) {
+            const file = event.target.files[0];
+            if (file) {
+              // Extract just the filename
+              const filename = file.name;
+              console.log("File selected:", filename);
+
+              // Fetch metadata suggestions based on filename
+              fetchMetadataSuggestions(filename);
+            }
+          });
+        }
+
+        // Fetch video as blob
+        async function fetchVideoAsBlob(url) {
+          try {
+            const response = await fetch(url);
+            if (!response.ok) {
+              throw new Error(
+                `Failed to fetch video: ${response.status} ${response.statusText}`
+              );
+            }
+            return await response.blob();
+          } catch (error) {
+            console.error("Error fetching video:", error);
+            throw error;
+          }
+        }
 
         // Function to populate the video list
         function populateVideoList(videoArray) {
@@ -230,18 +264,15 @@ Uploaded from a custom front-end page!</textarea
             const videoPreview = document.createElement("video");
             videoPreview.src = videoItem.url;
             videoPreview.className = "video-preview";
-            videoPreview.muted = true; // Mute to avoid auto-play issues
-            videoPreview.playsInline = true; // For mobile devices
-            videoPreview.preload = "metadata"; // Load minimal data for the preview
-            videoPreview.controls = false; // No controls in the sidebar
+            videoPreview.muted = true;
+            videoPreview.playsInline = true;
+            videoPreview.preload = "metadata";
+            videoPreview.controls = false;
 
             // Ensure the video stays paused after loading its data
             videoPreview.addEventListener("loadeddata", () => {
               videoPreview.pause();
             });
-
-            // Optionally, you can add a poster image if available:
-            // videoPreview.poster = videoItem.poster || '';
 
             // When the user clicks on the preview, load the corresponding video
             videoContainer.addEventListener("click", () => {
@@ -254,7 +285,6 @@ Uploaded from a custom front-end page!</textarea
         }
 
         // Function to load a video into the main player
-        // Find this part in the loadVideo function
         function loadVideo(index) {
           if (index < 0 || index >= videos.length) return;
 
@@ -274,7 +304,7 @@ Uploaded from a custom front-end page!</textarea
             // Otherwise, use the URL version
             video.src = videoItem.url;
 
-            // MODIFIED: Fetch the video file and convert to blob if not already available
+            // Fetch the video file and convert to blob if not already available
             if (!videoFile) {
               downloadBtn.disabled = true; // Temporarily disable while fetching
               fetchVideoAsBlob(videoItem.url)
@@ -302,22 +332,6 @@ Uploaded from a custom front-end page!</textarea
           };
         }
 
-        // ADD THIS FUNCTION: Helper function to fetch a video URL and return as a blob
-        async function fetchVideoAsBlob(url) {
-          try {
-            const response = await fetch(url);
-            if (!response.ok) {
-              throw new Error(
-                `Failed to fetch video: ${response.status} ${response.statusText}`
-              );
-            }
-            return await response.blob();
-          } catch (error) {
-            console.error("Error fetching video:", error);
-            throw error;
-          }
-        }
-
         // Add a video to the library
         function addVideoToLibrary(file, name = null) {
           const videoName = name || file.name || `Video ${videos.length + 1}`;
@@ -326,6 +340,7 @@ Uploaded from a custom front-end page!</textarea
           const videoObject = {
             name: videoName,
             blob: file,
+            url: URL.createObjectURL(file),
           };
 
           // Add to videos array
@@ -338,244 +353,54 @@ Uploaded from a custom front-end page!</textarea
           return videos.length - 1;
         }
 
-        // Format time to MM:SS
-        function formatTime(timeInSeconds) {
-          const minutes = Math.floor(timeInSeconds / 60);
-          const seconds = Math.floor(timeInSeconds % 60);
-          return `${minutes
-            .toString()
-            .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
-        }
+        // Toggle sidebar functionality
+        toggleSidebarBtn.addEventListener("click", function () {
+          console.log("Toggle button clicked");
+          console.log("Before toggle - Sidebar visible:", sidebarVisible);
+          console.log("Before toggle - Classes:", {
+            leftbar: leftbar.className,
+            rightbar: rightbar.className,
+          });
 
-        // Update time displays
-        function updateTimeDisplays() {
-          startTimeDisplay.textContent = formatTime(startTime);
-          endTimeDisplay.textContent = formatTime(endTime);
-        }
+          sidebarVisible = !sidebarVisible;
 
-        // Update trim region visual
-        function updateTrimRegion() {
-          const startPos = (startTime / videoDuration) * 100;
-          const endPos = (endTime / videoDuration) * 100;
-
-          startHandle.style.left = `${startPos}%`;
-          endHandle.style.left = `${endPos}%`;
-          trimRegion.style.left = `${startPos}%`;
-          trimRegion.style.width = `${endPos - startPos}%`;
-        }
-
-        // Reset trim points
-        function resetTrimPoints() {
-          startTime = 0;
-          endTime = videoDuration;
-          updateTrimRegion();
-          updateTimeDisplays();
-        }
-
-        // Reset button
-        resetTrimBtn.addEventListener("click", resetTrimPoints);
-
-        // Mouse events for dragging handles
-        startHandle.addEventListener("mousedown", function (e) {
-          isDragging = true;
-          currentHandle = "start";
-          e.preventDefault();
-        });
-
-        endHandle.addEventListener("mousedown", function (e) {
-          isDragging = true;
-          currentHandle = "end";
-          e.preventDefault();
-        });
-
-        document.addEventListener("mousemove", function (e) {
-          if (!isDragging) return;
-
-          const timelineRect = timeline.getBoundingClientRect();
-          const posX = e.clientX - timelineRect.left;
-          const posPercentage = Math.max(
-            0,
-            Math.min(100, (posX / timelineRect.width) * 100)
-          );
-
-          if (currentHandle === "start") {
-            // Don't allow start handle to go past end handle
-            const endPos = (endTime / videoDuration) * 100;
-            if (posPercentage < endPos) {
-              startHandle.style.left = `${posPercentage}%`;
-              startTime = (posPercentage / 100) * videoDuration;
-              updateTrimRegion();
-              updateTimeDisplays();
-            }
-          } else if (currentHandle === "end") {
-            // Don't allow end handle to go before start handle
-            const startPos = (startTime / videoDuration) * 100;
-            if (posPercentage > startPos) {
-              endHandle.style.left = `${posPercentage}%`;
-              endTime = (posPercentage / 100) * videoDuration;
-              updateTrimRegion();
-              updateTimeDisplays();
-            }
-          }
-        });
-
-        document.addEventListener("mouseup", function () {
-          isDragging = false;
-          currentHandle = null;
-        });
-
-        // Timeline click to set position
-        timeline.addEventListener("click", function (e) {
-          if (isDragging) return;
-
-          const rect = timeline.getBoundingClientRect();
-          const clickPos = e.clientX - rect.left;
-          const clickTime = (clickPos / rect.width) * videoDuration;
-
-          // Determine if click is closer to start or end handle
-          const startDiff = Math.abs(clickTime - startTime);
-          const endDiff = Math.abs(clickTime - endTime);
-
-          if (startDiff < endDiff) {
-            startTime = clickTime;
+          if (sidebarVisible) {
+            // Show left sidebar, hide right sidebar
+            leftbar.classList.remove("hidden");
+            rightbar.classList.add("hidden");
+            centre.classList.remove("expanded");
           } else {
-            endTime = clickTime;
+            // Hide left sidebar, show right sidebar
+            leftbar.classList.add("hidden");
+            rightbar.classList.remove("hidden");
+            centre.classList.add("expanded");
           }
 
-          updateTrimRegion();
-          updateTimeDisplays();
+          console.log("After toggle - Sidebar visible:", sidebarVisible);
+          console.log("After toggle - Classes:", {
+            leftbar: leftbar.className,
+            rightbar: rightbar.className,
+          });
         });
 
-        // Play trimmed section
-        playTrimmedBtn.addEventListener("click", function () {
-          video.currentTime = startTime;
-          video.play();
+        // Check time during video playback
+        const checkTime = function () {
+          if (video.currentTime >= endTime) {
+            video.pause();
+          }
+        };
 
-          const checkTime = function () {
-            if (video.currentTime >= endTime) {
-              video.pause();
-              video.removeEventListener("timeupdate", checkTime);
-            }
-          };
+        video.addEventListener("timeupdate", checkTime);
 
-          video.addEventListener("timeupdate", checkTime);
-        });
-
-        // Client-side video trimming using MediaRecorder
-        async function trimVideoClientSide(videoFile, startTime, endTime) {
-          return new Promise((resolve, reject) => {
-            const videoElement = document.createElement("video");
-            videoElement.setAttribute("muted", "");
-            videoElement.setAttribute("playsinline", "");
-
-            const videoURL = URL.createObjectURL(videoFile);
-            videoElement.src = videoURL;
-
-            let mediaRecorder;
-            let recordedChunks = [];
-
-            videoElement.onloadedmetadata = function () {
-              // Create canvas for video frames
-              const canvas = document.createElement("canvas");
-              canvas.width = videoElement.videoWidth;
-              canvas.height = videoElement.videoHeight;
-              const ctx = canvas.getContext("2d");
-
-              // Create media stream from canvas
-              const stream = canvas.captureStream();
-
-              // Set up MediaRecorder with same MIME type if possible
-              const options = { mimeType: videoFile.type };
-              try {
-                mediaRecorder = new MediaRecorder(stream, options);
-              } catch (e) {
-                // Fallback to a common format
-                mediaRecorder = new MediaRecorder(stream, {
-                  mimeType: "video/webm",
-                });
-              }
-
-              mediaRecorder.ondataavailable = function (e) {
-                if (e.data.size > 0) {
-                  recordedChunks.push(e.data);
-                }
-              };
-
-              mediaRecorder.onstop = function () {
-                const blob = new Blob(recordedChunks, {
-                  type: mediaRecorder.mimeType,
-                });
-                URL.revokeObjectURL(videoURL);
-                resolve(blob);
-              };
-
-              // Start recording
-              mediaRecorder.start();
-
-              // Draw video frames to canvas at appropriate times
-              videoElement.currentTime = startTime;
-
-              videoElement.addEventListener(
-                "timeupdate",
-                function onTimeUpdate() {
-                  if (videoElement.currentTime >= endTime) {
-                    mediaRecorder.stop();
-                    videoElement.removeEventListener(
-                      "timeupdate",
-                      onTimeUpdate
-                    );
-                    return;
-                  }
-
-                  // Draw current frame
-                  ctx.drawImage(
-                    videoElement,
-                    0,
-                    0,
-                    canvas.width,
-                    canvas.height
-                  );
-                }
-              );
-
-              videoElement.addEventListener("seeked", function onSeeked() {
-                // Start playback once we've seeked to the start time
-                videoElement.play();
-                videoElement.removeEventListener("seeked", onSeeked);
-              });
-            };
-
-            videoElement.onerror = function () {
-              reject(new Error("Error loading video"));
-            };
+        // Play trimmed button functionality
+        if (playTrimmedBtn) {
+          playTrimmedBtn.addEventListener("click", function () {
+            video.currentTime = startTime;
+            video.play();
           });
         }
 
-        // Server-side trimming function
-        async function trimVideoServerSide(
-          videoFile,
-          startTime,
-          endTime,
-          serverUrl
-        ) {
-          const formData = new FormData();
-          formData.append("video", videoFile);
-          formData.append("startTime", startTime);
-          formData.append("endTime", endTime);
-
-          const response = await fetch(serverUrl, {
-            method: "POST",
-            body: formData,
-          });
-
-          if (!response.ok) {
-            throw new Error(`Server error: ${response.status}`);
-          }
-
-          return await response.blob();
-        }
-
-        // Download trimmed video
+        // Download button functionality
         downloadBtn.addEventListener("click", async function () {
           if (!videoFile) {
             alert("Please upload a video first");
@@ -586,69 +411,25 @@ Uploaded from a custom front-end page!</textarea
           downloadBtn.disabled = true;
 
           try {
-            let trimmedVideoBlob;
-            let fileExtension = "";
+            // Get the current video object based on activeVideoIndex
+            const currentVideo = videos[activeVideoIndex];
 
-            if (trimMethodSelect && trimMethodSelect.value === "client") {
-              // Determine the output format based on browser support
-              let mimeType = "video/webm";
-              if (MediaRecorder.isTypeSupported("video/mp4")) {
-                mimeType = "video/mp4";
-                fileExtension = ".mp4";
-              } else {
-                fileExtension = ".webm";
-              }
+            // Use video name for the download or default to "trimmed_video" if no name exists
+            const fileName = currentVideo?.name
+              ? currentVideo.name.replace(/\s+/g, "_") // Replace spaces with underscores
+              : "trimmed_video";
 
-              // Use the determined mime type for recording
-              trimmedVideoBlob = await trimVideoClientSide(
-                videoFile,
-                startTime,
-                endTime,
-                mimeType
-              );
-            } else {
-              if (serverUrl) {
-                trimmedVideoBlob = await trimVideoServerSide(
-                  videoFile,
-                  startTime,
-                  endTime,
-                  serverUrl.value
-                );
-              } else {
-                // Fallback to client-side if serverUrl is not defined
-                let mimeType = "video/webm";
-                if (MediaRecorder.isTypeSupported("video/mp4")) {
-                  mimeType = "video/mp4";
-                  fileExtension = ".mp4";
-                } else {
-                  fileExtension = ".webm";
-                }
+            // For now, just download the current video file
+            // In a real implementation, you'd create the trimmed video here
+            let trimmedVideoBlob = videoFile;
+            let fileExtension = ".mp4";
 
-                trimmedVideoBlob = await trimVideoClientSide(
-                  videoFile,
-                  startTime,
-                  endTime,
-                  mimeType
-                );
-              }
-
-              // For server-side, get extension from original file
-              if (videoFile.name) {
-                fileExtension = videoFile.name.substring(
-                  videoFile.name.lastIndexOf(".")
-                );
-              } else {
-                // Default extension if name is not available
-                fileExtension = ".mp4";
-              }
-            }
-
-            // Create download link with proper extension
+            // Create download link with proper extension and the video name
             const url = URL.createObjectURL(trimmedVideoBlob);
             const a = document.createElement("a");
             a.style.display = "none";
             a.href = url;
-            a.download = "trimmed_video" + fileExtension;
+            a.download = fileName + fileExtension;
             document.body.appendChild(a);
             a.click();
 
@@ -657,18 +438,18 @@ Uploaded from a custom front-end page!</textarea
               URL.revokeObjectURL(url);
             }, 100);
           } catch (error) {
-            console.error("Error trimming video:", error);
-            alert("Error trimming video: " + error.message);
+            console.error("Error downloading video:", error);
+            alert("Error downloading video: " + error.message);
           } finally {
             loadingIndicator.style.display = "none";
             downloadBtn.disabled = false;
           }
         });
 
-        // Sample videos - only contain the URL as requested
+        // Sample videos
         const sampleVideos = [
           {
-            name: "Sample Video 1",
+            name: "girlfriend_clip_1",
             url: "static/assets/card3.mp4",
           },
           {
@@ -690,6 +471,41 @@ Uploaded from a custom front-end page!</textarea
 
         // Initialize with the right sidebar hidden
         rightbar.classList.add("hidden");
+
+        // Add a CSS rule for the 'hidden' class if not already defined
+        if (!document.getElementById("hidden-style")) {
+          const style = document.createElement("style");
+          style.id = "hidden-style";
+          style.textContent = `
+        .hidden {
+          display: none !important;
+        }
+        .expanded {
+          width: 75% !important;
+          margin: 0 auto;
+        }
+        .video-item {
+          margin-bottom: 15px;
+          cursor: pointer;
+          border: 2px solid transparent;
+          border-radius: 8px;
+          overflow: hidden;
+        }
+        .video-item.active {
+          border-color: #4776E6;
+        }
+        .video-preview {
+          width: 100%;
+          height: auto;
+        }
+        .loading {
+          display: none;
+          margin-left: 10px;
+          color: #666;
+        }
+      `;
+          document.head.appendChild(style);
+        }
       });
 
       // Client ID and API key
@@ -781,6 +597,102 @@ Uploaded from a custom front-end page!</textarea
       /**
        * Upload the selected video to YouTube using resumable upload
        */
+
+      function getVideoDetails() {
+        // Get form values
+        const title =
+          document.getElementById("video-title").value || "Untitled Video";
+        const description =
+          document.getElementById("video-description").value || "";
+        const privacyStatus =
+          document.getElementById("video-privacy").value || "private";
+        const tagsString = document.getElementById("video-tags").value || "";
+
+        // Convert tags string to array and trim whitespace
+        const tags = tagsString
+          .split(",")
+          .map((tag) => tag.trim())
+          .filter((tag) => tag.length > 0); // Remove empty tags
+
+        // Return details as dictionary
+        return {
+          title,
+          description,
+          privacyStatus,
+          tags,
+        };
+      }
+
+      async function fetchMetadataSuggestions(filename) {
+        const loadingMessage = document.getElementById("metadata-loading");
+        if (loadingMessage) {
+          loadingMessage.style.display = "block";
+        }
+
+        try {
+          // This URL is for the Flask endpoint
+          const response = await fetch("get-metadata", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              filename: filename,
+            }),
+          });
+
+          if (!response.ok) {
+            throw new Error(
+              `Server returned ${response.status}: ${response.statusText}`
+            );
+          }
+
+          const data = await response.json();
+          console.log("Received metadata suggestions:", data);
+
+          // Update form fields with suggestions
+          updateFormWithSuggestions(data);
+
+          return data;
+        } catch (error) {
+          console.error("Error fetching metadata suggestions:", error);
+          // Show an error message to the user
+          alert(
+            "Could not fetch metadata suggestions. Please check the console for details."
+          );
+        } finally {
+          if (loadingMessage) {
+            loadingMessage.style.display = "none";
+          }
+        }
+      }
+
+      function updateFormWithSuggestions(suggestions) {
+        // Only update if we have values and corresponding elements
+        if (suggestions.title) {
+          const titleElement = document.getElementById("video-title");
+          if (titleElement) titleElement.value = suggestions.title;
+        }
+
+        if (suggestions.description) {
+          const descriptionElement =
+            document.getElementById("video-description");
+          if (descriptionElement)
+            descriptionElement.value = suggestions.description;
+        }
+
+        if (suggestions.tags && Array.isArray(suggestions.tags)) {
+          const tagsElement = document.getElementById("video-tags");
+          if (tagsElement) tagsElement.value = suggestions.tags.join(", ");
+        }
+
+        // Optionally, you could also update privacy setting if that comes from backend
+        if (suggestions.privacyStatus) {
+          const privacyElement = document.getElementById("video-privacy");
+          if (privacyElement) privacyElement.value = suggestions.privacyStatus;
+        }
+      }
+
       async function uploadVideo() {
         const fileInput = document.getElementById("video-file");
         const file = fileInput.files[0];
@@ -800,13 +712,7 @@ Uploaded from a custom front-end page!</textarea
         }
 
         // Get video details from form
-        const title =
-          document.getElementById("video-title").value || "Untitled Video";
-        const description =
-          document.getElementById("video-description").value || "";
-        const privacyStatus =
-          document.getElementById("video-privacy").value || "private";
-
+        const videoDetails = getVideoDetails();
         statusElem.textContent = "Starting upload process...";
         progressContainer.style.display = "block";
 
@@ -814,12 +720,12 @@ Uploaded from a custom front-end page!</textarea
           // Step 1: Create the video resource metadata
           const metadata = {
             snippet: {
-              title: title,
-              description: description,
-              tags: ["demo", "upload", "api"],
+              title: videoDetails.title,
+              description: videoDetails.description,
+              tags: videoDetails.tags,
             },
             status: {
-              privacyStatus: privacyStatus,
+              privacyStatus: videoDetails.privacyStatus,
             },
           };
 

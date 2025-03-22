@@ -29,7 +29,6 @@
   background-color: var(--clr-accent-2);
   overflow-y: auto;
   padding-left: 1rem;
-  padding-right: 5rem;
   display: flex;
   align-items: center;
   flex-direction: column;
@@ -51,6 +50,10 @@
   overflow-y: auto;
   padding-bottom: 2rem;
   transition: transform 0.3s ease-in-out, margin-inline 0.3s ease-in-out;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }
 
 .centre.expanded {

@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
+    <title>Trimly</title>
     <link rel="stylesheet" type="text/css" href="static/styles/landing.css" />
   </head>
   <body>
@@ -16,9 +16,13 @@
           <ul role="list">
             <li>Home</li>
             <li>My Videos</li>
-            <li>Contact Us</li>
-            <li class="btn btn-light">Login</li>
-            <li class="btn btn-shadow">Sign Up</li>
+            <li><a href="{{ url_for('contact')}}">Contact Us</a></li>
+            <li>
+              <a href="{{ url_for('login')}}" class="btn btn-light">Login</a>
+            </li>
+            <li>
+              <a href="{{ url_for('login')}}" class="btn btn-shadow">Sign Up</a>
+            </li>
           </ul>
         </div>
       </nav>
