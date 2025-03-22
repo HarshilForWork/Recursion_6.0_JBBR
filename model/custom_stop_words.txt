@@ -1,0 +1,20 @@
+custom_stop_words = {'ago', 'am', 'i', 'you', 'me', 'your', 'it', 'for', 'to', 'of', 'in', 'on', 'with', 
+                     'the', 'this', 'that', 'my', 'we', 'who', 'if', 'about', 'up', 'out', 'got', 
+                     'get', 'what', 'a', 'also', 'from', 'and', 'or', 'but', 'so', 'just', 'at',
+                     'be', 'is', 'are', 'was', 'were', 'been', 'do', 'does', 'did', 'will', 'would',
+                     'should', 'can', 'could', 'may', 'might', 'must', 'shall', 'having', 'has', 'had',
+                     'how', 'why', 'when', 'where', 'which', 'whom', 'whose', 'here', 'there', 'then',
+                     'than', 'now', 'over', 'under', 'between', 'before', 'after', 'while', 'during',
+                     'against', 'through', 'though', 'since', 'because', 'until', 'unless', 'nor', 'not',
+                     'no', 'yes', 'yeah', 'yep', 'yup', 'ok', 'okay', 'sure', 'well', 'good', 'great',
+                     'nice', 'awesome', 'cool', 'bad', 'terrible', 'horrible', 'awful', 'wonderful', 'fantastic',
+                     'excellent', 'amazing', 'perfect', 'best', 'better', 'good', 'great', 'nice', 'awesome',
+                     'could', 'should', 'would', 'might', 'may', 'must', 'can', 'will', 'shall', 'ought',
+                     'couldnt', 'shouldnt', 'wouldnt', 'mightnt', 'mustnt', 'cant', 'wont', 'shant', 'oughtnt',
+                     'dont', 'doesnt', 'didnt', 'isnt', 'arent', 'wasnt', 'werent', 'hasnt', 'havent', 'hadnt',
+                     'lets', 'ill', 'im', 'youre', 'hes', 'shes', 'its', 'were', 'theyre', 'ive', 'youve',
+                     'weve', 'theyve', 'hadnt', 'werent', 'wasnt', 'arent', 'isnt', 'dont', 'doesnt', 'didnt', 'city',
+                     'date', 'month', 'tell', 'certain', 'half', 'one', 'two', 'three', 'four', 'five', 'six', 'right',
+                     'maybe', 'push', 'recieve', 'walks', 'impressive', 'need', 'gentle', 'possible', 'struggled', 'struggle'
+                     'example', 'accelerate'
+                      }
