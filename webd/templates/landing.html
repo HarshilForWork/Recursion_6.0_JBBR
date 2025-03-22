@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Trimly</title>
+    <link rel="stylesheet" type="text/css" href="static/styles/landing.css" />
+  </head>
+  <body>
+    <section>
+      <nav class="navbar">
+        <div class="logo">
+          <img src="static/assets/Logo.jpg" alt="Logo" />trimly.ai
+        </div>
+        <div>
+          <ul role="list">
+            <li>Home</li>
+            <li>My Videos</li>
+            <li><a href="{{ url_for('contact')}}">Contact Us</a></li>
+            <li>
+              <a href="{{ url_for('login')}}" class="btn btn-light">Login</a>
+            </li>
+            <li>
+              <a href="{{ url_for('login')}}" class="btn btn-shadow">Sign Up</a>
+            </li>
+          </ul>
+        </div>
+      </nav>
+    </section>
+
+    <section class="hero">
+      <h1>
+        Turn <span class="grad">videos</span>
+        <video
+          class="inline-video"
+          width="auto"
+          height="100"
+          autoplay
+          muted
+          loop
+        >
+          <source src="static/assets/video1.mp4" type="video/mp4" />
+          Your browser does not support the video tag.</video
+        ><br />
+        into viral
+        <div class="stacked-container">
+          <div class="stacked-bg"></div>
+          <video
+            class="stacked-video"
+            width="auto"
+            height="140"
+            autoplay
+            muted
+            loop
+          >
+            <source src="static/assets/video2.mp4" type="video/mp4" />
+            Your browser does not support the video tag.
+          </video>
+        </div>
+        <span class="grad">shorts</span>
+      </h1>
+      <p>Create shorts from your long videos in just one click</p>
+      <div class="upload">
+        <p>
+          <span
+            ><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
+              <path
+                d="M246.6 9.4c-12.5-12.5-32.8-12.5-45.3 0l-128 128c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 109.3 192 320c0 17.7 14.3 32 32 32s32-14.3 32-32l0-210.7 73.4 73.4c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3l-128-128zM64 352c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 64c0 53 43 96 96 96l256 0c53 0 96-43 96-96l0-64c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 64c0 17.7-14.3 32-32 32L96 448c-17.7 0-32-14.3-32-32l0-64z"
+              /></svg
+          ></span>
+          <input
+            type="text"
+            placeholder="Paste Youtube link here"
+            class="youtube-input"
+          />
+        </p>
+        <button class="btn btn-upload" id="openModal">
+          <span
+            ><svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+            >
+              <path
+                fill="currentColor"
+                d="m19 1l-1.26 2.75L15 5l2.74 1.26L19 9l1.25-2.74L23 5l-2.75-1.25M9 4L6.5 9.5L1 12l5.5 2.5L9 20l2.5-5.5L17 12l-5.5-2.5M19 15l-1.26 2.74L15 19l2.74 1.25L19 23l1.25-2.75L23 19l-2.75-1.26"
+              /></svg
+          ></span>
+          Generate
+        </button>
+      </div>
+    </section>
+
+    <section class="shorts-carousel">
+      <h1>2.5M clips made by <span class="grad">1.1M creators</span></h1>
+      <p>
+        Grow your audience like the top creators by sharing short-form content
+        daily. Trimly will help you create engaging video clips from your long
+        videos in just a few clicks.
+      </p>
+      <div class="shorts-track" id="shortsTrack"></div>
+    </section>
+
+    <section class="features">
+      <h1>How we work</h1>
+      <div class="card-container">
+        <div class="card">
+          <video
+            src="static/assets/section1.mp4"
+            width="350"
+            height="auto"
+            autoplay
+            muted
+            loop
+          ></video>
+
+          <h4>Start by uploading a video</h4>
+          <p>
+            Simply paste a link to your Youtube video, or upload a video file,
+            into Klap. Our rule of thumb: a one-minute long video produces about
+            5 video clips.
+          </p>
+        </div>
+        <div class="card">
+          <video
+            src="static/assets/section2.mp4"
+            width="350"
+            height="auto"
+            autoplay
+            muted
+            loop
+          ></video>
+
+          <h4>Let Trimly's AI magically create vertical videos for you</h4>
+          <p>
+            Just sit back and relax, while Trimly does all the work for you. In
+            a matter of minutes, we will give you multiple viral-worthy clips
+            from your original video that you can use Shorts.
+          </p>
+        </div>
+        <div class="card">
+          <video
+            src="static/assets/section3.mp4"
+            width="350"
+            height="auto"
+            autoplay
+            muted
+            loop
+          ></video>
+
+          <h4>Post your videos and grow your followers</h4>
+          <p>
+            After you make any final touches on your clipped videos, you're all
+            set to export them in high-resolution and share them on your other
+            social channels. Get ready to see your followers and engagement
+            grow!
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="testimonials">
+      <h1 class="heading">What our users are saying</h1>
+
+      <div class="testimonials-container">
+        <div class="testimonial-card">
+          <div class="user-name">Michael R.</div>
+          <p class="quote">
+            "This platform transformed our entire content workflow."
+          </p>
+          <p class="description">
+            As a marketing director, I was amazed at how this tool effortlessly
+            turned our long YouTube videos into engaging short clips. We simply
+            enter the number of shorts we want, and it segments our videos
+            perfectly. Our workflow has never been smoother, and our audience is
+            more engaged than ever.
+          </p>
+        </div>
+
+        <div class="testimonial-card">
+          <div class="user-name">Sarah K.</div>
+          <p class="quote">
+            "Finally, software that understands creative professionals."
+          </p>
+          <p class="description">
+            After years of manually editing lengthy videos, I finally found a
+            solution that gets it. With just a few clicks, I input the number of
+            shorts I needed, and the tool intelligently splits my YouTube videos
+            into perfectly timed, bite-sized clips. It’s an absolute
+            game-changer.
+          </p>
+        </div>
+
+        <div class="testimonial-card">
+          <div class="user-name">Jamal T.</div>
+          <p class="quote">"Game-changing for independent creators."</p>
+          <p class="description">
+            As an independent creator, editing long videos into engaging shorts
+            was overwhelming. This tool lets me simply set the number of shorts
+            I want, and it does the heavy lifting by cutting my videos with
+            precision. It’s saved me countless hours and let me focus on growing
+            my channel.
+          </p>
+        </div>
+
+        <div class="testimonial-card">
+          <div class="user-name">Elena M.</div>
+          <p class="quote">
+            "Enterprise-grade power with startup-friendly usability."
+          </p>
+          <p class="description">
+            Our agency used to struggle with transforming long YouTube content
+            into multiple engaging shorts for different campaigns. With this
+            tool, we just specify the number of clips we need and get perfectly
+            timed shorts every time. It has streamlined our production and
+            maintained brand consistency across projects.
+          </p>
+        </div>
+
+        <div class="testimonial-card">
+          <div class="user-name">David C.</div>
+          <p class="quote">"The perfect solution for educational content."</p>
+          <p class="description">
+            As an online educator, converting lengthy lectures into digestible
+            shorts used to be daunting. This platform now lets me simply specify
+            the number of shorts I need from my YouTube videos, and it automates
+            the segmentation flawlessly. My students love the concise clips, and
+            I save so much time.
+          </p>
+        </div>
+
+        <div class="testimonial-card">
+          <div class="user-name">Priya S.</div>
+          <p class="quote">
+            "Customer support that actually cares about my success."
+          </p>
+          <p class="description">
+            Not only does this platform seamlessly convert long YouTube videos
+            into a set number of engaging shorts, but the support team truly
+            cares about my success. They helped me optimize the process and even
+            offered tips to fine-tune the final clips. It feels like they’re
+            invested in my growth as a creator.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="pricing-section">
+      <div class="pricing-header">
+        <h2 class="pricing-title">
+          Our pricing options to suit your creative needs.
+        </h2>
+      </div>
+
+      <div class="pricing-cards">
+        <div class="pricing-card">
+          <div class="card-icon">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </div>
+          <div class="card-header">
+            <h3>Free</h3>
+            <p>Our taste product</p>
+          </div>
+          <div class="card-price">
+            <span class="price-currency">$</span>
+            <span class="price-amount">0</span>
+            <span class="price-period">per month</span>
+          </div>
+          <button class="btn get-started-btn">Get Started</button>
+          <ul class="feature-list">
+            <li>
+              <svg
+                class="check-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  fill="#6070fd"
+                  fill-opacity="0.2"
+                />
+                <path
+                  d="M8 12L11 15L16 9"
+                  stroke="#6070fd"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+              Access to basic features
+            </li>
+            <li>
+              <svg
+                class="check-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  fill="#6070fd"
+                  fill-opacity="0.2"
+                />
+                <path
+                  d="M8 12L11 15L16 9"
+                  stroke="#6070fd"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+              Limited functionality
+            </li>
+            <li>
+              <svg
+                class="check-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  fill="#6070fd"
+                  fill-opacity="0.2"
+                />
+                <path
+                  d="M8 12L11 15L16 9"
+                  stroke="#6070fd"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+              No commitment required
+            </li>
+            <li>
+              <svg
+                class="check-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  fill="#6070fd"
+                  fill-opacity="0.2"
+                />
+                <path
+                  d="M8 12L11 15L16 9"
+                  stroke="#6070fd"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+              No credit card required
+            </li>
+          </ul>
+        </div>
+
+        <div class="pricing-card popular">
+          <div class="popular-badge">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+            <span>Most Popular</span>
+          </div>
+          <div class="card-icon">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <rect
+                x="4"
+                y="4"
+                width="16"
+                height="16"
+                rx="2"
+                stroke="currentColor"
+                stroke-width="2"
+              />
+            </svg>
+          </div>
+          <div class="card-header">
+            <h3>Standard</h3>
+            <p>Our taste product</p>
+          </div>
+          <div class="card-price">
+            <span class="price-currency">$</span>
+            <span class="price-amount">29</span>
+            <span class="price-period">per month</span>
+          </div>
+          <button class="btn get-started-btn popular-btn">Get Started</button>
+          <ul class="feature-list">
+            <li>
+              <svg
+                class="check-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  fill="#6070fd"
+                  fill-opacity="0.2"
+                />
+                <path
+                  d="M8 12L11 15L16 9"
+                  stroke="#6070fd"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+              Access to basic features
+            </li>
+            <li>
+              <svg
+                class="check-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  fill="#6070fd"
+                  fill-opacity="0.2"
+                />
+                <path
+                  d="M8 12L11 15L16 9"
+                  stroke="#6070fd"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+              Limited premium content access
+            </li>
+            <li>
+              <svg
+                class="check-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  fill="#6070fd"
+                  fill-opacity="0.2"
+                />
+                <path
+                  d="M8 12L11 15L16 9"
+                  stroke="#6070fd"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+              Suitable for small projects
+            </li>
+            <li>
+              <svg
+                class="check-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  fill="#6070fd"
+                  fill-opacity="0.2"
+                />
+                <path
+                  d="M8 12L11 15L16 9"
+                  stroke="#6070fd"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+              Affordable entry-level option
+            </li>
+            <li>
+              <svg
+                class="check-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  fill="#6070fd"
+                  fill-opacity="0.2"
+                />
+                <path
+                  d="M8 12L11 15L16 9"
+                  stroke="#6070fd"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+              No Watermark
+            </li>
+          </ul>
+        </div>
+
+        <div class="pricing-card">
+          <div class="card-icon">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M12 2L19.1 9.1L22 4L16.9 12L22 20L12 17L2 20L7.1 12L2 4L4.9 9.1L12 2Z"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </div>
+          <div class="card-header">
+            <h3>Premium</h3>
+            <p>Our taste product</p>
+          </div>
+          <div class="card-price">
+            <span class="price-currency">$</span>
+            <span class="price-amount">59</span>
+            <span class="price-period">per month</span>
+          </div>
+          <button class="btn get-started-btn">Get Started</button>
+          <ul class="feature-list">
+            <li>
+              <svg
+                class="check-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  fill="#6070fd"
+                  fill-opacity="0.2"
+                />
+                <path
+                  d="M8 12L11 15L16 9"
+                  stroke="#6070fd"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+              Advanced features
+            </li>
+            <li>
+              <svg
+                class="check-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  fill="#6070fd"
+                  fill-opacity="0.2"
+                />
+                <path
+                  d="M8 12L11 15L16 9"
+                  stroke="#6070fd"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+              Unlock all pro feature
+              <svg
+                class="info-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  stroke-width="2"
+                />
+                <path
+                  d="M12 16V12M12 8H12.01"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                />
+              </svg>
+            </li>
+            <li>
+              <svg
+                class="check-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  fill="#6070fd"
+                  fill-opacity="0.2"
+                />
+                <path
+                  d="M8 12L11 15L16 9"
+                  stroke="#6070fd"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+              Suitable for small projects
+            </li>
+            <li>
+              <svg
+                class="check-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  fill="#6070fd"
+                  fill-opacity="0.2"
+                />
+                <path
+                  d="M8 12L11 15L16 9"
+                  stroke="#6070fd"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+              Affordable entry-level option
+            </li>
+            <li>
+              <svg
+                class="check-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  fill="#6070fd"
+                  fill-opacity="0.2"
+                />
+                <path
+                  d="M8 12L11 15L16 9"
+                  stroke="#6070fd"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+              No Watermark
+            </li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <div class="footer-container">
+        <div class="footer-logo">
+          <img src="static/assets/Logo.jpg" alt="Logo" />
+          <p>
+            Transform your long videos into engaging short-form content with our
+            AI-powered video editor.
+          </p>
+          <div class="footer-social">
+            <a href="#"
+              ><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                <path
+                  d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"
+                /></svg
+            ></a>
+            <a href="#"
+              ><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                <path
+                  d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"
+                /></svg
+            ></a>
+            <a href="#"
+              ><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                <path
+                  d="M9 8h-3v4h3v12h5v-12h3.642l.358-4h-4v-1.667c0-.955.192-1.333 1.115-1.333h2.885v-5h-3.808c-3.596 0-5.192 1.583-5.192 4.615v3.385z"
+                /></svg
+            ></a>
+          </div>
+        </div>
+
+        <div class="footer-links">
+          <div class="footer-column">
+            <h4>Product</h4>
+            <ul role="list">
+              <li><a href="#">Features</a></li>
+              <li><a href="#">Pricing</a></li>
+              <li><a href="#">Testimonials</a></li>
+              <li><a href="#">Case Studies</a></li>
+            </ul>
+          </div>
+
+          <div class="footer-column">
+            <h4>Resources</h4>
+            <ul role="list">
+              <li><a href="#">Documentation</a></li>
+              <li><a href="#">Blog</a></li>
+              <li><a href="#">Tutorials</a></li>
+              <li><a href="#">Support Center</a></li>
+            </ul>
+          </div>
+
+          <div class="footer-column">
+            <h4>Company</h4>
+            <ul role="list">
+              <li><a href="#">About Us</a></li>
+              <li><a href="#">Careers</a></li>
+              <li><a href="#">Contact</a></li>
+              <li><a href="#">Partners</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <p>© 2025 Your Company. All rights reserved.</p>
+        <button class="btn btn-light">Get Started</button>
+      </div>
+    </footer>
+
+    <div id="myModal" class="modal">
+      <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2>Generate Shorts</h2>
+        <form id="generateForm">
+          <label for="seconds">Number of Seconds:</label>
+          <input type="number" id="seconds" name="seconds" min="1" required />
+          <label for="shorts">Number of Shorts to Generate:</label>
+          <input type="number" id="shorts" name="shorts" min="1" required />
+          <button type="submit" class="btn">Submit</button>
+        </form>
+      </div>
+    </div>
+  </body>
+
+  <script>
+    const videoData = [
+      { video: "static/assets/card1.mp4" },
+      { video: "static/assets/card2.mp4" },
+      { video: "static/assets/card3.mp4" },
+      { video: "static/assets/card4.mp4" },
+      { video: "static/assets/card5.mp4" },
+      { video: "static/assets/card6.mp4" },
+      { video: "static/assets/card7.mp4" },
+      { video: "static/assets/card8.mp4" },
+    ];
+
+    document.addEventListener("DOMContentLoaded", function () {
+      const shortVideos = document.querySelectorAll(".short-video");
+      shortVideos.forEach((video) => {
+        video.addEventListener("mouseenter", function () {
+          this.style.transform = "translateY(-10px) scale(1.05)";
+          this.style.boxShadow = "0 15px 30px rgba(0, 0, 0, 0.2)";
+        });
+
+        video.addEventListener("mouseleave", function () {
+          this.style.transform = "";
+          this.style.boxShadow = "0 10px 30px rgba(0, 0, 0, 0.1)";
+        });
+      });
+
+      const track = document.getElementById("shortsTrack");
+
+      function createVideoDiv(videoObj) {
+        const videoDiv = document.createElement("div");
+        videoDiv.classList.add("short-video");
+
+        const videoElement = document.createElement("video");
+        videoElement.src = videoObj.video;
+        videoElement.autoplay = true;
+        videoElement.loop = true;
+        videoElement.muted = true;
+        videoElement.playsInline = true;
+        videoElement.classList.add("short-video-content");
+
+        videoDiv.appendChild(videoElement);
+        return videoDiv;
+      }
+
+      videoData.forEach((videoObj) => {
+        const videoDiv = createVideoDiv(videoObj);
+        track.appendChild(videoDiv);
+      });
+
+      videoData.forEach((videoObj) => {
+        const videoDiv = createVideoDiv(videoObj);
+        track.appendChild(videoDiv);
+      });
+
+      shortVideos.forEach((video) => {
+        video.addEventListener("mouseenter", function () {
+          this.style.transform = "translateY(-10px) scale(1.05)";
+          this.style.boxShadow = "0 15px 30px rgba(0, 0, 0, 0.2)";
+        });
+
+        video.addEventListener("mouseleave", function () {
+          this.style.transform = "";
+          this.style.boxShadow = "0 10px 30px rgba(0, 0, 0, 0.1)";
+        });
+      });
+
+      const pricingCards = document.querySelectorAll(".pricing-card");
+
+      pricingCards.forEach((card) => {
+        card.addEventListener("mouseenter", function () {
+          if (!this.classList.contains("popular")) {
+            this.style.transform = "translateY(-10px)";
+            this.style.boxShadow = "0 10px 30px rgba(96, 112, 253, 0.2)";
+          } else {
+            this.style.transform = "translateY(-10px)";
+            this.style.boxShadow = "0 10px 30px rgba(96, 112, 253, 0.4)";
+          }
+        });
+
+        card.addEventListener("mouseleave", function () {
+          this.style.transform = "translateY(0)";
+          this.style.boxShadow = "none";
+        });
+      });
+
+      const infoIcon = document.querySelector(".info-icon");
+      if (infoIcon) {
+        let tooltip = null;
+
+        infoIcon.addEventListener("mouseenter", function (e) {
+          tooltip = document.createElement("div");
+          tooltip.className = "tooltip";
+          tooltip.textContent =
+            "Access to all premium features including advanced editing, AI tools, and priority support";
+          tooltip.style.position = "absolute";
+          tooltip.style.backgroundColor = "#333";
+          tooltip.style.color = "white";
+          tooltip.style.padding = "8px 12px";
+          tooltip.style.borderRadius = "4px";
+          tooltip.style.fontSize = "14px";
+          tooltip.style.maxWidth = "200px";
+          tooltip.style.zIndex = "100";
+          tooltip.style.boxShadow = "0 4px 6px rgba(0, 0, 0, 0.1)";
+
+          document.body.appendChild(tooltip);
+
+          const rect = this.getBoundingClientRect();
+          tooltip.style.top = `${
+            rect.top - tooltip.offsetHeight - 10 + window.scrollY
+          }px`;
+          tooltip.style.left = `${
+            rect.left +
+            rect.width / 2 -
+            tooltip.offsetWidth / 2 +
+            window.scrollX
+          }px`;
+        });
+
+        infoIcon.addEventListener("mouseleave", function () {
+          if (tooltip) {
+            document.body.removeChild(tooltip);
+            tooltip = null;
+          }
+        });
+      }
+    });
+
+    var modal = document.getElementById("myModal");
+    var openModalBtn = document.getElementById("openModal");
+    var closeBtn = document.getElementsByClassName("close")[0];
+
+    openModalBtn.addEventListener("click", openModal);
+    closeBtn.addEventListener("click", closeModal);
+    window.addEventListener("click", outsideClick);
+
+    function openModal() {
+      modal.style.display = "block";
+    }
+
+    function closeModal() {
+      modal.style.display = "none";
+    }
+
+    function outsideClick(e) {
+      if (e.target == modal) {
+        modal.style.display = "none";
+      }
+    }
+
+    document
+      .getElementById("generateForm")
+      .addEventListener("submit", function (e) {
+        e.preventDefault();
+        var seconds = document.getElementById("seconds").value;
+        var shorts = document.getElementById("shorts").value;
+
+        console.log("Seconds:", seconds, "Shorts:", shorts);
+        closeModal();
+      });
+  </script>
+</html>

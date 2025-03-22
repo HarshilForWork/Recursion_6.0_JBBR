@@ -1,0 +1,212 @@
+@import url("https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&family=DM+Serif+Display:ital@0;1&display=swap");
+
+@layer reset {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    -moz-text-size-adjust: none;
+    -webkit-text-size-adjust: none;
+    text-size-adjust: none;
+  }
+
+  * {
+    margin: 0;
+  }
+
+  ul[role="list"],
+  ol[role="list"] {
+    list-style: none;
+    padding: 0;
+  }
+
+  body {
+    min-height: 100vh;
+    line-height: 1.6;
+  }
+
+  h1,
+  h2,
+  h3,
+  button,
+  input,
+  label {
+    line-height: 1.1;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    text-wrap: balance;
+  }
+
+  img,
+  picture {
+    max-width: 100%;
+    display: block;
+  }
+
+  input,
+  button,
+  textarea,
+  select {
+    font: inherit;
+  }
+}
+
+@layer base {
+  :root {
+    --clr-main-1: #ffffff;
+    --clr-main-2: #c3ccdc;
+
+    --clr-accent-1: #6070fd;
+    --clr-accent-2: #7dd3fc;
+
+    --clr-btn: #ffd166;
+    /* --clr-other-2: #7dd3fc; */
+
+    --clr-text-white: #ffffff;
+    --clr-text-black: #000;
+    --clr-text-grey: #9ca3af;
+    --clr-text-gradient: linear-gradient(
+      to right,
+      #4acfee,
+      #53f8c9,
+      #02d79a,
+      #6070fd,
+      #2a46ff,
+      #0099ff,
+      #4acfee
+    );
+
+    --ff-heading: "DM Serif Display";
+    --ff-body: "Inter", sans-serif;
+    --ff-el: "DM Mono";
+
+    --border-radius-1: 0.25rem;
+    --border-radius-2: 0.5rem;
+    --border-radius-3: 0.75rem;
+    --border-radius-4: 1rem;
+
+    --font-hero: 4rem;
+    --font-subhero: 3rem;
+    --font-primary-header: 2.5rem;
+    --font-secondary-header: 2rem;
+    --font-subheading: 1.5rem;
+    --font-supporting-text: 1.25rem;
+    --font-body: 1rem;
+    --font-small: 0.875rem;
+  }
+
+  html {
+    font-family: var(--ff-body);
+    line-height: 1.6rem;
+    scroll-behavior: smooth;
+  }
+  body {
+    font-family: var(--ff-body);
+    color: var(--clr-text-white);
+  }
+
+  ul,
+  li,
+  button {
+    font-family: var(--ff-el);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--ff-heading);
+  }
+
+  img {
+    border-radius: var(--border-radius-3);
+  }
+
+  a {
+    text-decoration: none;
+    color: inherit;
+  }
+}
+
+@layer utilities {
+  .navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: var(--clr-accent-1);
+    gap: 3rem;
+    padding: 1.25rem 4.25rem;
+    font-size: var(--font-supporting-text);
+    font-weight: bold;
+    color: var(--clr-text-white);
+
+    ul {
+      display: flex;
+      justify-content: center;
+
+      li {
+        cursor: pointer;
+        align-items: center;
+        margin-inline: 1rem;
+        padding-block: 0.5rem;
+      }
+    }
+    img {
+      width: 60px;
+      height: 60px;
+      object-fit: cover;
+    }
+  }
+
+  .logo {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: var(--ff-heading);
+  }
+
+  .btn {
+    border-radius: var(--border-radius-2);
+    cursor: pointer;
+    border: none;
+    padding: 0.5rem 1.5rem;
+    width: 10rem;
+    text-align: center;
+  }
+
+  .btn-light {
+    background: var(--clr-btn);
+    color: var(--clr-text-black);
+    border-radius: var(--border-radius-4);
+  }
+
+  .btn-shadow {
+    border: 2px solid var(--clr-btn);
+    box-shadow: 0 0 15px var(--clr-btn);
+    border-radius: var(--border-radius-4);
+  }
+
+  .grad {
+    background: var(--clr-text-gradient);
+    background-size: 200%;
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: animate-gradient 2.5s infinite linear;
+  }
+
+  @keyframes animate-gradient {
+    to {
+      background-position: 200%;
+    }
+  }
+}
