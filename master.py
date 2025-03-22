@@ -153,8 +153,18 @@ def main():
     print(f"\n🔄 Step 4: Reframing video clips to meme-style...")
     process_all_clips(clips_dir)
     
-    # Step 5: Generate titles and metadata for clips
-    print(f"\n📝 Step 5: Generating titles and metadata for clips...")
+    # Step 5: Add captions to all reframed clips (new step)
+    print(f"\n📑 Step 5: Adding captions to video clips...")
+    try:
+        subprocess.run([sys.executable, "captions.py"], check=True)
+        print("✅ Captioning complete")
+    except subprocess.CalledProcessError as e:
+        print(f"❌ Captioning failed: {e}")
+    except Exception as e:
+        print(f"❌ Captioning failed with error: {str(e)}")
+    
+    # Step 6: Generate titles and metadata for clips (now step 6 instead of 5)
+    print(f"\n📝 Step 6: Generating titles and metadata for clips...")
     adjusted_timestamps_csv = os.path.join(output_dir, "adjusted_timestamps.csv")
     metadata_dir = os.path.join(output_dir, "metadata")
     
@@ -180,7 +190,7 @@ def main():
     print(f"- Captions: {caption_output}")
     print(f"- Captions JSON: {json_path}")
     print(f"- Keywords data: {output_csv}")
-    print(f"- Video clips: {clips_dir}")
+    print(f"- Video clips: {clips_dir} (reframed and captioned)")
     print(f"- Adjusted timestamps: {adjusted_timestamps_csv}")
     print(f"- Metadata: {metadata_dir}")
 
