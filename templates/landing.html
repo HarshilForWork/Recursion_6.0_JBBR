@@ -963,5 +963,46 @@
         console.log("Seconds:", seconds, "Shorts:", shorts);
         closeModal();
       });
+
+    document
+      .getElementById("generateForm")
+      .addEventListener("submit", function (e) {
+        e.preventDefault();
+        var youtubeUrl = document.querySelector(".youtube-input").value;
+        var seconds = document.getElementById("seconds").value;
+        var shorts = document.getElementById("shorts").value;
+
+        // Create data object to send
+        var data = {
+          youtube_url: youtubeUrl,
+          seconds: seconds,
+          shorts: shorts,
+        };
+
+        // Send data to backend using fetch API
+        fetch("/generate-shorts", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            console.log("Success:", data);
+            // Handle successful response (e.g., redirect to results page)
+            if (data.success) {
+              window.location.href = data.redirect_url;
+            } else {
+              alert(data.message || "An error occurred");
+            }
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+            alert("An error occurred while processing your request");
+          });
+
+        closeModal();
+      });
   </script>
 </html>

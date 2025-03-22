@@ -160,7 +160,131 @@ Uploaded from a custom front-end page!</textarea
       </div>
     </section>
 
+    <script id="video-data" type="application/json">
+      {{ videos_data|tojson|safe }}
+    </script>
     <script>
+      // Define these functions at the top level so they're available throughout
+      function populateVideoList(videoArray) {
+        const videoListElement = document.getElementById("video-list");
+        videoListElement.innerHTML = ""; // Clear existing items
+        videoArray.forEach((videoItem, index) => {
+          const videoContainer = document.createElement("div");
+          videoContainer.className = "video-item";
+          if (index === activeVideoIndex) {
+            videoContainer.classList.add("active");
+          }
+          videoContainer.dataset.index = index;
+
+          // Create a video element for preview
+          const videoPreview = document.createElement("video");
+          videoPreview.src = videoItem.url;
+          videoPreview.className = "video-preview";
+          videoPreview.muted = true;
+          videoPreview.playsInline = true;
+          videoPreview.preload = "metadata";
+          videoPreview.controls = false;
+
+          // Ensure the video stays paused after loading its data
+          videoPreview.addEventListener("loadeddata", () => {
+            videoPreview.pause();
+          });
+
+          // When the user clicks on the preview, load the corresponding video
+          videoContainer.addEventListener("click", () => {
+            loadVideo(index);
+          });
+
+          videoContainer.appendChild(videoPreview);
+          videoListElement.appendChild(videoContainer);
+        });
+      }
+
+      // Function to load a video into the main player
+      function loadVideo(index) {
+        if (index < 0 || index >= videos.length) return;
+
+        // Update active video index
+        activeVideoIndex = index;
+        const videoItem = videos[index];
+
+        // Update UI to show active video
+        populateVideoList(videos);
+
+        const video = document.getElementById("video");
+        const downloadBtn = document.getElementById("download-btn");
+
+        // Load video into player
+        if (videoItem.blob) {
+          // Use the trimmed/local Blob if available
+          video.src = URL.createObjectURL(videoItem.blob);
+          videoFile = videoItem.blob;
+        } else if (videoItem.url) {
+          // Otherwise, use the URL version
+          video.src = videoItem.url;
+
+          // Fetch the video file and convert to blob if not already available
+          if (!videoFile) {
+            downloadBtn.disabled = true; // Temporarily disable while fetching
+            fetchVideoAsBlob(videoItem.url)
+              .then((blob) => {
+                videoFile = blob;
+                downloadBtn.disabled = false; // Enable download once we have the blob
+              })
+              .catch((err) => {
+                console.error("Error fetching video as blob:", err);
+              });
+          }
+        }
+
+        // Reset positions when new video is loaded
+        video.onloadedmetadata = function () {
+          videoDuration = video.duration;
+
+          // Update the duration in the video object if not set
+          if (!videoItem.duration) {
+            videos[index].duration = videoDuration;
+            populateVideoList(videos);
+          }
+
+          resetTrimPoints();
+        };
+      }
+
+      // Fetch video as blob
+      async function fetchVideoAsBlob(url) {
+        try {
+          const response = await fetch(url);
+          if (!response.ok) {
+            throw new Error(
+              `Failed to fetch video: ${response.status} ${response.statusText}`
+            );
+          }
+          return await response.blob();
+        } catch (error) {
+          console.error("Error fetching video:", error);
+          throw error;
+        }
+      }
+
+      // Format time to MM:SS
+      function formatTime(timeInSeconds) {
+        const minutes = Math.floor(timeInSeconds / 60);
+        const seconds = Math.floor(timeInSeconds % 60);
+        return `${minutes.toString().padStart(2, "0")}:${seconds
+          .toString()
+          .padStart(2, "0")}`;
+      }
+
+      // Global variables
+      let activeVideoIndex = -1;
+      let videoDuration = 0;
+      let videoFile = null;
+      let startTime = 0;
+      let endTime = 0;
+      let videos = [];
+      let sidebarVisible = true;
+
       document.addEventListener("DOMContentLoaded", function () {
         console.log("DOM Content Loaded");
 
@@ -186,24 +310,17 @@ Uploaded from a custom front-end page!</textarea
           rightbar: !!rightbar,
         });
 
-        // Initialize variables
-        let isDragging = false;
-        let currentHandle = null;
-        let startTime = 0;
-        let endTime = 0;
-        let videoDuration = 0;
-        let videoFile = null;
-        let videos = [];
-        let activeVideoIndex = -1;
-        let sidebarVisible = true;
-
-        // Format time to MM:SS
-        function formatTime(timeInSeconds) {
-          const minutes = Math.floor(timeInSeconds / 60);
-          const seconds = Math.floor(timeInSeconds % 60);
-          return `${minutes
-            .toString()
-            .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+        // Initialize videos from the JSON data
+        const videoDataEl = document.getElementById("video-data");
+        if (videoDataEl && videoDataEl.textContent) {
+          try {
+            videos = JSON.parse(videoDataEl.textContent);
+            console.log("Loaded videos data:", videos);
+          } catch (error) {
+            console.error("Error parsing video data:", error);
+          }
+        } else {
+          console.error("Video data element not found or empty");
         }
 
         // Update time displays
@@ -231,105 +348,6 @@ Uploaded from a custom front-end page!</textarea
               fetchMetadataSuggestions(filename);
             }
           });
-        }
-
-        // Fetch video as blob
-        async function fetchVideoAsBlob(url) {
-          try {
-            const response = await fetch(url);
-            if (!response.ok) {
-              throw new Error(
-                `Failed to fetch video: ${response.status} ${response.statusText}`
-              );
-            }
-            return await response.blob();
-          } catch (error) {
-            console.error("Error fetching video:", error);
-            throw error;
-          }
-        }
-
-        // Function to populate the video list
-        function populateVideoList(videoArray) {
-          videoListElement.innerHTML = ""; // Clear existing items
-          videoArray.forEach((videoItem, index) => {
-            const videoContainer = document.createElement("div");
-            videoContainer.className = "video-item";
-            if (index === activeVideoIndex) {
-              videoContainer.classList.add("active");
-            }
-            videoContainer.dataset.index = index;
-
-            // Create a video element for preview
-            const videoPreview = document.createElement("video");
-            videoPreview.src = videoItem.url;
-            videoPreview.className = "video-preview";
-            videoPreview.muted = true;
-            videoPreview.playsInline = true;
-            videoPreview.preload = "metadata";
-            videoPreview.controls = false;
-
-            // Ensure the video stays paused after loading its data
-            videoPreview.addEventListener("loadeddata", () => {
-              videoPreview.pause();
-            });
-
-            // When the user clicks on the preview, load the corresponding video
-            videoContainer.addEventListener("click", () => {
-              loadVideo(index);
-            });
-
-            videoContainer.appendChild(videoPreview);
-            videoListElement.appendChild(videoContainer);
-          });
-        }
-
-        // Function to load a video into the main player
-        function loadVideo(index) {
-          if (index < 0 || index >= videos.length) return;
-
-          // Update active video index
-          activeVideoIndex = index;
-          const videoItem = videos[index];
-
-          // Update UI to show active video
-          populateVideoList(videos);
-
-          // Load video into player
-          if (videoItem.blob) {
-            // Use the trimmed/local Blob if available
-            video.src = URL.createObjectURL(videoItem.blob);
-            videoFile = videoItem.blob;
-          } else if (videoItem.url) {
-            // Otherwise, use the URL version
-            video.src = videoItem.url;
-
-            // Fetch the video file and convert to blob if not already available
-            if (!videoFile) {
-              downloadBtn.disabled = true; // Temporarily disable while fetching
-              fetchVideoAsBlob(videoItem.url)
-                .then((blob) => {
-                  videoFile = blob;
-                  downloadBtn.disabled = false; // Enable download once we have the blob
-                })
-                .catch((err) => {
-                  console.error("Error fetching video as blob:", err);
-                });
-            }
-          }
-
-          // Reset positions when new video is loaded
-          video.onloadedmetadata = function () {
-            videoDuration = video.duration;
-
-            // Update the duration in the video object if not set
-            if (!videoItem.duration) {
-              videos[index].duration = videoDuration;
-              populateVideoList(videos);
-            }
-
-            resetTrimPoints();
-          };
         }
 
         // Add a video to the library
@@ -446,65 +464,12 @@ Uploaded from a custom front-end page!</textarea
           }
         });
 
-        // Sample videos
-        const sampleVideos = [
-          {
-            name: "girlfriend_clip_1",
-            url: "static/assets/card3.mp4",
-          },
-          {
-            name: "Sample Video 2",
-            url: "static/assets/card2.mp4",
-          },
-          {
-            name: "Sample Video 3",
-            url: "static/assets/card4.mp4",
-          },
-        ];
-
-        // Initialize the video library with sample videos
-        videos = [...sampleVideos];
-        populateVideoList(videos);
+        // Initialize the video list and load the first video if available
         if (videos.length > 0) {
+          populateVideoList(videos);
           loadVideo(0);
-        }
-
-        // Initialize with the right sidebar hidden
-        rightbar.classList.add("hidden");
-
-        // Add a CSS rule for the 'hidden' class if not already defined
-        if (!document.getElementById("hidden-style")) {
-          const style = document.createElement("style");
-          style.id = "hidden-style";
-          style.textContent = `
-        .hidden {
-          display: none !important;
-        }
-        .expanded {
-          width: 75% !important;
-          margin: 0 auto;
-        }
-        .video-item {
-          margin-bottom: 15px;
-          cursor: pointer;
-          border: 2px solid transparent;
-          border-radius: 8px;
-          overflow: hidden;
-        }
-        .video-item.active {
-          border-color: #4776E6;
-        }
-        .video-preview {
-          width: 100%;
-          height: auto;
-        }
-        .loading {
-          display: none;
-          margin-left: 10px;
-          color: #666;
-        }
-      `;
-          document.head.appendChild(style);
+        } else {
+          console.warn("No videos available to display");
         }
       });
 
