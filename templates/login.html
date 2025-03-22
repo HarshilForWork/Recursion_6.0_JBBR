@@ -3,6 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <title>TRIMLY - Authentication</title>
+    <link
+      rel="shortcut icon"
+      href="static/assets/Logo.jpg"
+      type="image/x-icon"
+    />
     <style>
       /* -----------------------
        RESET & BASIC STYLES
@@ -447,105 +452,113 @@
         </div>
       </div>
     </div>
+  </body>
+  <script>
+    // Add this script to your HTML file or create a separate script.js file
 
-    <script>
-      // Adjust the backend URL/port as needed
-      const BASE_URL = "http://localhost:3000";
-
+    document.addEventListener("DOMContentLoaded", function () {
       // Tab switching functionality
       const loginTab = document.getElementById("login-tab");
       const signupTab = document.getElementById("signup-tab");
-      const loginFormContainer = document.getElementById(
-        "login-form-container"
-      );
-      const signupFormContainer = document.getElementById(
-        "signup-form-container"
-      );
+      const loginForm = document.getElementById("login-form-container");
+      const signupForm = document.getElementById("signup-form-container");
 
-      loginTab.addEventListener("click", () => {
+      loginTab.addEventListener("click", function () {
         loginTab.classList.add("active");
         signupTab.classList.remove("active");
-        loginFormContainer.classList.add("active");
-        signupFormContainer.classList.remove("active");
+        loginForm.classList.add("active");
+        signupForm.classList.remove("active");
       });
 
-      signupTab.addEventListener("click", () => {
+      signupTab.addEventListener("click", function () {
         signupTab.classList.add("active");
         loginTab.classList.remove("active");
-        signupFormContainer.classList.add("active");
-        loginFormContainer.classList.remove("active");
+        signupForm.classList.add("active");
+        loginForm.classList.remove("active");
       });
 
-      // Signup form handling
-      document
-        .getElementById("signup-form")
-        .addEventListener("submit", async (e) => {
-          e.preventDefault();
-          const username = document.getElementById("username").value;
-          const email = document.getElementById("email").value;
-          const password = document.getElementById("password").value;
-          const messageElement = document.getElementById("signup-message");
+      // Login form submission
+      const loginFormElement = document.getElementById("login-form");
+      const loginMessage = document.getElementById("login-message");
 
-          try {
-            const res = await fetch(`${BASE_URL}/signup`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ username, email, password }),
-            });
+      loginFormElement.addEventListener("submit", function (e) {
+        e.preventDefault();
 
-            const data = await res.json();
-            messageElement.textContent = data.message || "Unknown error";
+        const email = document.getElementById("login-email").value;
+        const password = document.getElementById("login-password").value;
 
-            if (res.ok) {
-              messageElement.style.color = "#4CAF50";
-              setTimeout(() => {
-                loginTab.click(); // Switch to login tab after successful signup
-              }, 1500);
-            } else {
-              messageElement.style.color = "#F44336";
-            }
-          } catch (err) {
-            messageElement.textContent = "Connection error: " + err;
-            messageElement.style.color = "#F44336";
-          }
-        });
-
-      // Login form handling
-      document
-        .getElementById("login-form")
-        .addEventListener("submit", async (e) => {
-          e.preventDefault();
-          const email = document.getElementById("login-email").value;
-          const password = document.getElementById("login-password").value;
-          const messageElement = document.getElementById("login-message");
-
-          try {
-            const res = await fetch(`${BASE_URL}/login`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ email, password }),
-            });
-
-            const data = await res.json();
-            messageElement.textContent = data.message || "Unknown error";
-
-            if (res.ok) {
-              messageElement.style.color = "#4CAF50";
-              localStorage.setItem("token", data.token);
-              localStorage.setItem("userId", data.userId);
-
+        fetch("/login", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ email, password }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.success) {
+              loginMessage.textContent = data.message;
+              loginMessage.style.color = "green";
               // Redirect to dashboard after successful login
-              setTimeout(() => {
-                window.location.href = "dashboard.html";
-              }, 1000);
+              window.location.href = "/";
             } else {
-              messageElement.style.color = "#F44336";
+              loginMessage.textContent = data.message;
+              loginMessage.style.color = "red";
             }
-          } catch (err) {
-            messageElement.textContent = "Connection error: " + err;
-            messageElement.style.color = "#F44336";
-          }
+          })
+          .catch((error) => {
+            loginMessage.textContent = "An error occurred. Please try again.";
+            loginMessage.style.color = "red";
+            console.error("Error:", error);
+          });
+      });
+
+      // Signup form submission
+      const signupFormElement = document.getElementById("signup-form");
+      const signupMessage = document.getElementById("signup-message");
+
+      signupFormElement.addEventListener("submit", function (e) {
+        e.preventDefault();
+
+        const username = document.getElementById("username").value;
+        const email = document.getElementById("email").value;
+        const password = document.getElementById("password").value;
+
+        fetch("/signup", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ username, email, password }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.success) {
+              signupMessage.textContent = data.message;
+              signupMessage.style.color = "green";
+              // Redirect to dashboard after successful signup
+              window.location.href = "/";
+            } else {
+              signupMessage.textContent = data.message;
+              signupMessage.style.color = "red";
+            }
+          })
+          .catch((error) => {
+            signupMessage.textContent = "An error occurred. Please try again.";
+            signupMessage.style.color = "red";
+            console.error("Error:", error);
+          });
+      });
+
+      // Social auth buttons (placeholders)
+      const socialButtons = document.querySelectorAll(".social-button");
+
+      socialButtons.forEach((button, index) => {
+        button.addEventListener("click", function () {
+          const providers = ["/auth/google", "/auth/facebook", "/auth/apple"];
+          window.location.href = providers[index];
         });
-    </script>
-  </body>
+      });
+    });
+  </script>
 </html>

@@ -5,6 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Trimly</title>
     <link rel="stylesheet" type="text/css" href="static/styles/landing.css" />
+    <link
+      rel="shortcut icon"
+      href="static/assets/Logo.jpg"
+      type="image/x-icon"
+    />
   </head>
   <body>
     <section>
@@ -14,8 +19,7 @@
         </div>
         <div>
           <ul role="list">
-            <li>Home</li>
-            <li>My Videos</li>
+            <li><a href="{{ url_for('home')}}">Home</a></li>
             <li><a href="{{ url_for('contact')}}">Contact Us</a></li>
             <li>
               <a href="{{ url_for('login')}}" class="btn btn-light">Login</a>
@@ -303,7 +307,7 @@
                   stroke-linejoin="round"
                 />
               </svg>
-              Access to basic features
+              Limited Clip Generation
             </li>
             <li>
               <svg
@@ -327,7 +331,7 @@
                   stroke-linejoin="round"
                 />
               </svg>
-              Limited functionality
+              Watermarked Clips
             </li>
             <li>
               <svg
@@ -351,7 +355,7 @@
                   stroke-linejoin="round"
                 />
               </svg>
-              No commitment required
+              Basic Video Transcription
             </li>
             <li>
               <svg
@@ -375,7 +379,7 @@
                   stroke-linejoin="round"
                 />
               </svg>
-              No credit card required
+              Ad-Supported
             </li>
           </ul>
         </div>
@@ -447,79 +451,7 @@
                   stroke-linejoin="round"
                 />
               </svg>
-              Access to basic features
-            </li>
-            <li>
-              <svg
-                class="check-icon"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <circle
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  fill="#6070fd"
-                  fill-opacity="0.2"
-                />
-                <path
-                  d="M8 12L11 15L16 9"
-                  stroke="#6070fd"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                />
-              </svg>
-              Limited premium content access
-            </li>
-            <li>
-              <svg
-                class="check-icon"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <circle
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  fill="#6070fd"
-                  fill-opacity="0.2"
-                />
-                <path
-                  d="M8 12L11 15L16 9"
-                  stroke="#6070fd"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                />
-              </svg>
-              Suitable for small projects
-            </li>
-            <li>
-              <svg
-                class="check-icon"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <circle
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  fill="#6070fd"
-                  fill-opacity="0.2"
-                />
-                <path
-                  d="M8 12L11 15L16 9"
-                  stroke="#6070fd"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                />
-              </svg>
-              Affordable entry-level option
+              Unlimited Clip Generation
             </li>
             <li>
               <svg
@@ -544,6 +476,54 @@
                 />
               </svg>
               No Watermark
+            </li>
+            <li>
+              <svg
+                class="check-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  fill="#6070fd"
+                  fill-opacity="0.2"
+                />
+                <path
+                  d="M8 12L11 15L16 9"
+                  stroke="#6070fd"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+              Advanced Video Transcription
+            </li>
+            <li>
+              <svg
+                class="check-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  fill="#6070fd"
+                  fill-opacity="0.2"
+                />
+                <path
+                  d="M8 12L11 15L16 9"
+                  stroke="#6070fd"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+              Cross-Platform Export
             </li>
           </ul>
         </div>
@@ -597,7 +577,7 @@
                   stroke-linejoin="round"
                 />
               </svg>
-              Advanced features
+              Custom Clip Length
             </li>
             <li>
               <svg
@@ -621,7 +601,7 @@
                   stroke-linejoin="round"
                 />
               </svg>
-              Unlock all pro feature
+              Bulk Video Processing
               <svg
                 class="info-icon"
                 viewBox="0 0 24 24"
@@ -665,7 +645,7 @@
                   stroke-linejoin="round"
                 />
               </svg>
-              Suitable for small projects
+              Advanced AI-Based Clipping
             </li>
             <li>
               <svg
@@ -689,7 +669,7 @@
                   stroke-linejoin="round"
                 />
               </svg>
-              Affordable entry-level option
+              Priority Support
             </li>
             <li>
               <svg
@@ -713,7 +693,7 @@
                   stroke-linejoin="round"
                 />
               </svg>
-              No Watermark
+              White-labeling & Branding
             </li>
           </ul>
         </div>

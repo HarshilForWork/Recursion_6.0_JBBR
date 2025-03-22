@@ -7,7 +7,6 @@ client = MongoClient("mongodb+srv://shilankfans07:jbbr123@trimly.3hglc.mongodb.n
 db = client["test"]
 collection = db["video_metadata"]
 
-
 @app.route('/')
 def home():
     return render_template('landing.html')
@@ -15,6 +14,63 @@ def home():
 @app.route('/login')
 def login():
     return render_template('login.html')
+
+@app.route('/login', methods=['POST'])
+def login_post():
+    data = request.json
+    email = data.get('email')
+    password = data.get('password')
+    
+    if not email or not password:
+        return jsonify({'success': False, 'message': 'Please provide email and password'}), 400
+    
+    user = collection.find_one({'email': email})
+    
+    if user is None:
+        return jsonify({'success': False, 'message': 'User not found'}), 404
+    
+    if user['password'] == password:  
+        session['user_id'] = str(user['_id'])
+        session['username'] = user['username']
+        return jsonify({'success': True, 'message': 'Login successful'})
+    else:
+        return jsonify({'success': False, 'message': 'Incorrect password'}), 401
+
+@app.route('/signup', methods=['POST'])
+def signup():
+    data = request.json
+    username = data.get('username')
+    email = data.get('email')
+    password = data.get('password')
+    
+    if not username or not email or not password:
+        return jsonify({'success': False, 'message': 'All fields are required'}), 400
+    
+    # Check if user already exists
+    if collection.find_one({'email': email}):
+        return jsonify({'success': False, 'message': 'Email already registered'}), 409
+    
+    if collection.find_one({'username': username}):
+        return jsonify({'success': False, 'message': 'Username already taken'}), 409
+    
+    try:
+        # Insert new user
+        user_data = {
+            'username': username,
+            'email': email,
+            'password': password,  
+        }
+        
+        result = collection.insert_one(user_data)
+        
+        # Set session data
+        session['user_id'] = str(result.inserted_id)
+        session['username'] = username
+        
+        return jsonify({'success': True, 'message': 'Account created successfully'})
+    except Exception as e:
+        return jsonify({'success': False, 'message': f'An error occurred: {str(e)}'}), 500
+
 
 @app.route('/generated_vid')
 def generated_vid():
@@ -103,5 +159,3 @@ def generate_shorts():
         # Log the error
         print(f"Error in generate_shorts: {str(e)}")
         return jsonify({'success': False, 'message': f'An error occurred: {str(e)}'})
-
-
