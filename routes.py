@@ -41,21 +41,18 @@ def get_metadata():
         return jsonify({'error': 'Filename is required'}), 400
     
     filename = data['filename']
+
     
     # Remove file extension
     name_without_extension = os.path.splitext(filename)[0]
-
     result = collection.find_one({"clip_name": name_without_extension})
     
     if not result:
         return jsonify({'error': 'No metadata found for the provided filename'}), 404
 
-    video_metadata = result.get("video_metadata", {})
-    title = video_metadata.get("title", "")
-    description = video_metadata.get("description", "")
-    tags = video_metadata.get("tags", [])
-
-
+    title = result.get("title", "")
+    description = result.get("description", "")
+    tags = result.get("tags", [])
     
     return jsonify({
         "title": title,
