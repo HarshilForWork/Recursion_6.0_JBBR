@@ -104,7 +104,7 @@ def main():
                         os.system(f'ffmpeg -i "{input_video_path}" -vn -acodec copy "{temp_audio_path}" -y')
 
                         # Create video writer
-                        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+                        fourcc = cv2.VideoWriter.fourcc('m', 'p', '4', 'v')
                         out = cv2.VideoWriter(temp_output_path, fourcc, fps, (frame_width, frame_height))
 
                         frame_idx = 0
@@ -155,11 +155,13 @@ def main():
                                     padding = 12  # Increased padding
                                     # Semi-transparent background
                                     bg_rect = np.zeros((frame_height, frame_width, 4), dtype=np.uint8)
-                                    cv2.rectangle(bg_rect, 
-                                                 (x - padding, y - padding), 
-                                                 (x + text_width + padding, y + text_height + padding), 
-                                                 (0, 0, 0, int(180 * alpha)), 
-                                                 -1)
+                                    cv2.rectangle(
+                                        bg_rect,
+                                        (int(x - padding), int(y - padding)),
+                                        (int(x + text_width + padding), int(y + text_height + padding)),
+                                        (0, 0, 0),  # BGR only, no alpha
+                                        -1
+                                    )
                                     
                                     # Draw shadow for better visibility
                                     shadow_offset = 2

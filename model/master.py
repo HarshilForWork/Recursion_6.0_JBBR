@@ -85,7 +85,7 @@ def main():
     # Step 1: Run caption_extractor.py
     print("\n📝 Step 1: Extracting captions...")
     try:
-        subprocess.run([sys.executable, "caption_extractor.py", youtube_url, caption_output], check=True)
+        subprocess.run([sys.executable, "model/caption_extractor.py", youtube_url, caption_output], check=True)
         print("✅ Caption extraction complete")
     except subprocess.CalledProcessError:
         print("❌ Caption extraction failed. Exiting.")
@@ -110,7 +110,7 @@ def main():
     try:
         subprocess.run([
             sys.executable, 
-            "trend_analyzer.py", 
+            "model/trend_analyzer.py",
             json_path,
             custom_stop_words_path,
             output_csv
@@ -136,8 +136,8 @@ def main():
     try:
         subprocess.run([
             sys.executable, 
-            "timestamp.py", 
-            youtube_url, 
+            "model/timestamp.py",
+            youtube_url,
             str(time_range),
             clips_dir,
             output_csv,
@@ -156,7 +156,7 @@ def main():
     # Step 5: Add captions to all reframed clips (new step)
     print(f"\n📑 Step 5: Adding captions to video clips...")
     try:
-        subprocess.run([sys.executable, "captions.py"], check=True)
+        subprocess.run([sys.executable, "model/captions.py"], check=True)
         print("✅ Captioning complete")
     except subprocess.CalledProcessError as e:
         print(f"❌ Captioning failed: {e}")
@@ -171,7 +171,7 @@ def main():
     try:
         subprocess.run([
             sys.executable,
-            "title_generation.py",
+            "model/title_generation.py",
             adjusted_timestamps_csv,
             json_path,
             output_csv,
