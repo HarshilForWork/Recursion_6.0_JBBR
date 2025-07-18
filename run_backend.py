@@ -4,6 +4,13 @@ import subprocess
 import sys
 import os
 
+import sys
+import io
+try:
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+except Exception:
+    pass
+
 app = Flask(__name__)
 CORS(app)
 

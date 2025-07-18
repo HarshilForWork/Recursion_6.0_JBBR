@@ -955,13 +955,40 @@
 
     document
       .getElementById("generateForm")
-      .addEventListener("submit", function (e) {
+      .addEventListener("submit", async function (e) {
         e.preventDefault();
         var seconds = document.getElementById("seconds").value;
         var shorts = document.getElementById("shorts").value;
+        var youtubeInput = document.querySelector(".youtube-input");
+        var youtubeUrl = youtubeInput ? youtubeInput.value : "";
 
-        console.log("Seconds:", seconds, "Shorts:", shorts);
-        closeModal();
+        if (!youtubeUrl) {
+          alert("Please enter a YouTube URL.");
+          return;
+        }
+
+        try {
+          const response = await fetch("/generate_shorts", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              youtube_url: youtubeUrl,
+              top_n: parseInt(shorts, 10),
+              time_range: parseInt(seconds, 10)
+            })
+          });
+
+          const data = await response.json();
+          if (response.ok) {
+            alert("Generation started!\n" + (data.output || "Check backend logs for progress."));
+          } else {
+            alert("Error: " + (data.error || "Unknown error"));
+          }
+        } catch (err) {
+          alert("Request failed: " + err);
+        } finally {
+          closeModal();
+        }
       });
   </script>
 </html>

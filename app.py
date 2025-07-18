@@ -2,9 +2,20 @@ from flask import Flask, render_template, request, redirect, url_for, jsonify, s
 from flask_cors import CORS
 from pymongo import MongoClient
 import os
+from dotenv import load_dotenv
+
+import sys
+try:
+    import io
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+except Exception:
+    pass
 
 
-# Set correct static folder for Flask
+
+# Load environment variables from .env file
+load_dotenv()
+
 # Set correct static folder for Flask
 app = Flask(
     __name__,
@@ -13,9 +24,12 @@ app = Flask(
     instance_path='/tmp'
 )
 CORS(app)
-CORS(app)
 
-client = MongoClient("mongodb+srv://shilankfans07:jbbr123@trimly.3hglc.mongodb.net/?retryWrites=true&w=majority&appName=trimly")
+# Use environment variable for MongoDB URI
+MONGODB_URI = os.environ.get("MONGODB_URI")
+if not MONGODB_URI:
+    raise RuntimeError("MONGODB_URI environment variable not set. Please set it to your MongoDB connection string.")
+client = MongoClient(MONGODB_URI)
 db = client["test"]
 collection = db["video_metadata"]
 
@@ -60,10 +74,44 @@ def get_metadata():
 import subprocess
 import sys
 
+@app.route('/generate_shorts', methods=['POST'])
+def generate_shorts():
+    """
+    Accepts JSON with youtube_url, top_n, and time_range, and runs model/master.py as if from CLI.
+    """
+    data = request.json
+    if not isinstance(data, dict):
+        return jsonify({'error': 'Invalid JSON body'}), 400
+    youtube_url = data.get('youtube_url')
+    top_n = data.get('top_n', 5)
+    time_range = data.get('time_range', 15)
+    if not youtube_url:
+        return jsonify({'error': 'youtube_url is required'}), 400
+    try:
+        script_path = os.path.join(os.path.dirname(__file__), 'model', 'master.py')
+        # Simulate CLI input by passing arguments via subprocess and feeding input()
+        # master.py expects input() for url, top_n, time_range, so we pass them via stdin
+        input_str = f"{youtube_url}\n{top_n}\n{time_range}\n"
+        result = subprocess.run(
+            [sys.executable, script_path],
+            input=input_str,
+            capture_output=True,
+            text=True,
+            check=True,
+            encoding='utf-8'
+        )
+        return jsonify({'output': result.stdout})
+    except subprocess.CalledProcessError as e:
+        return jsonify({'error': f"Model script failed: {e.stderr}"}), 500
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# --- Model Integration Endpoint ---
+# (Deprecated: use /generate_shorts instead)
 @app.route('/generate', methods=['POST'])
 def generate_output():
     """
-    Runs model/master.py and returns its output as JSON.
+    (Deprecated) Runs model/master.py and returns its output as JSON.
     """
     try:
         script_path = os.path.join(os.path.dirname(__file__), 'model', 'master.py')
@@ -81,4 +129,4 @@ def generate_output():
         return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
-    app.run()
+    app.run(port=5000)

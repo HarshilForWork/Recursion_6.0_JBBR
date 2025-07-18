@@ -50,7 +50,7 @@ def process_all_clips(folder):
 
 def main():
     print("=" * 50)
-    print("🎥 YouTube Video Keyword Analyzer")
+    print("YouTube Video Keyword Analyzer")
     print("=" * 50)
     
     # Get YouTube URL from user
